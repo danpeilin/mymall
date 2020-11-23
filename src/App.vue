@@ -37,7 +37,7 @@
               user，您好！<i class="el-icon-arrow-down el-icon--right"></i>
             </span>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>我的订单</el-dropdown-item>
+             <router-link to="/chakanquanbu"><el-dropdown-item>我的订单</el-dropdown-item></router-link> 
               <el-dropdown-item>个人中心</el-dropdown-item>
               <el-dropdown-item divided>注销</el-dropdown-item>
             </el-dropdown-menu>
