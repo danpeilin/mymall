@@ -3,7 +3,7 @@
     <el-form ref="user" :model="formData" :rules="rules" size="medium" label-width="100px"
       label-position="top">
       <el-form-item label="用户名" prop="field101">
-        <el-input v-model="formData.field101" placeholder="请输入用户名" clearable :style="{width: '100%'}">
+        <el-input v-model="formData.field101" placeholder="user" clearable :style="{width: '100%'}">
         </el-input>
       </el-form-item>
       <el-form-item label="性别" prop="field102">
@@ -12,8 +12,12 @@
             :disabled="item.disabled">{{item.label}}</el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="邮箱" prop="field104">
-        <el-input v-model="formData.field104" placeholder="请输入邮箱(11111@qq.com)" clearable :style="{width: '100%'}">
+      <el-form-item label="邮箱" prop="email"
+        :rules="[
+          { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+          { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] }
+      ]">
+        <el-input v-model="formData.email" placeholder="请输入邮箱(11111@qq.com)" clearable :style="{width: '100%'}">
         </el-input>
       </el-form-item>
       <el-form-item size="large" style="text-align:center">
@@ -32,7 +36,7 @@ export default {
       formData: {
         field101: undefined,
         field102: undefined,
-        field104: undefined,
+        email: '',
       },
       rules: {
         field101: [{
@@ -44,11 +48,6 @@ export default {
           required: true,
           message: '性别不能为空',
           trigger: 'change'
-        }],
-        field104: [{
-          required: true,
-          message: '请输入邮箱地址',
-          trigger: 'blur'
         }],
       },
       field102Options: [{

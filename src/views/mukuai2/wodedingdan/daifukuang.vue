@@ -152,7 +152,7 @@ export default {
     },
     methods: {
        details(){
-          this.$router.push({path:'/'})
+          this.$router.push({path:'/dingdanxiangqing'})
        },
        getSummaries(param) {
          const { columns, data } = param;

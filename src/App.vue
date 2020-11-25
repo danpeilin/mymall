@@ -37,8 +37,8 @@
               user，您好！<i class="el-icon-arrow-down el-icon--right"></i>
             </span>
             <el-dropdown-menu slot="dropdown">
-             <router-link to="/chakanquanbu"><el-dropdown-item>我的订单</el-dropdown-item></router-link> 
-              <el-dropdown-item>个人中心</el-dropdown-item>
+             <el-dropdown-item><el-link :underline="false" @click="order">我的订单</el-link> </el-dropdown-item>
+            <el-dropdown-item><el-link :underline="false" @click="Personal">个人中心</el-link></el-dropdown-item>
               <el-dropdown-item divided>注销</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -111,6 +111,12 @@ export default {
     methods: {
         toggletag(index) {
           this.active = index
+        },
+        order(){
+          this.$router.push({path: '/chakanquanbu'})
+        },
+        Personal(){
+          this.$router.push({path: '/gerenzhongxin'})
         },
   },
   created() {
