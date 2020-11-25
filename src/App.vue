@@ -17,7 +17,7 @@
               <el-dropdown-item>狮子头</el-dropdown-item>
               <el-dropdown-item>螺蛳粉</el-dropdown-item>
               <el-dropdown-item disabled>双皮奶</el-dropdown-item>
-              <el-dropdown-item divided>蚵仔煎</el-dropdown-item>
+              <el-dropdown-item divided >蚵仔煎</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </div>
@@ -28,18 +28,21 @@
       </div>
       
       <div class="rightarea">
-        <div class="avatar"> 
+        <div class="avatar" v-if="userNickname != ''"> 
           <img class="myavatar" src="https://picsum.photos/id/1/200/300" />
         </div>
         <div class="up">
-          <el-dropdown>
+          <el-button type="text" v-if="userNickname == ''" @click="changeVisible">您好！请登录</el-button>
+
+      
+          <el-dropdown  v-if="userNickname != ''" > 
             <span class="el-dropdown-link">
-              user，您好！<i class="el-icon-arrow-down el-icon--right"></i>
+              {{this.userNickname}}，您好！<i class="el-icon-arrow-down el-icon--right"></i>
             </span>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>我的订单</el-dropdown-item>
-              <el-dropdown-item>个人中心</el-dropdown-item>
-              <el-dropdown-item divided>注销</el-dropdown-item>
+              <el-dropdown-item >个人中心</el-dropdown-item>
+              <el-dropdown-item divided @click.native="logout">注销</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </div>
@@ -91,6 +94,8 @@
   </div>
 </template>
 <script>
+
+import {logout} from "./api/user"
 export default {
   data() {
       return {
@@ -103,25 +108,63 @@ export default {
         ],
         scrollY: 0,
         show:'false',
+        user:'',
+        userNickname:''
       }
       
     },
     computed: {
+      userchange() {
+        return this.$store.state.userchange
+      }
+    },
+    watch: {
+      userchange: function() {
+        if (this.userchange == true) {
+          this.getusername()
+        }
+      }
     },
     methods: {
         toggletag(index) {
           this.active = index
         },
+        changeVisible() {
+          this.$store.commit("changeTure")
+        },
+        getusername() {
+          var userinfo = localStorage.getItem('userinfo')
+          if(userinfo) {
+            var user = JSON.parse(userinfo)
+            this.userNickname = user.userNickname
+          }
+        },
+        logout() {
+          logout().then(res => { 
+            localStorage.removeItem('Token')
+            localStorage.removeItem('userinfo')
+            this.$message({
+                 message: '注销成功',
+                 type: 'success'
+              });
+          })
+          this.userNickname = ''
+          this.$store.commit("changeUsernameFalse")
+        },
+        showheader() {
+            window.addEventListener('scroll', e => {
+              this.scrollY = window.scrollY
+              if(this.scrollY > 690) {
+                this.show = true
+              } else {
+                this.show = false
+              }
+            })
+        }
   },
   created() {
-    window.addEventListener('scroll', e => {
-      this.scrollY = window.scrollY
-      if(this.scrollY > 690) {
-        this.show = true
-      } else {
-        this.show = false
-      }
-    })
+    this.getusername()
+    this.showheader()
   },
 }
 </script>
@@ -175,7 +218,7 @@ export default {
 }
 .searchbar {
   float: left;
-  margin-left: 150px;
+  margin-left: 200px;
   width: 250px;
   height: 60px;
   line-height: 60px;
@@ -199,7 +242,8 @@ export default {
   border-radius: 50%;
 }
 .up {
-  margin-left: 10px;
+  margin-left: 20px;
+  margin-right: 50px;
 }
 .cart {
   height: 60px;
