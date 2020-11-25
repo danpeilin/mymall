@@ -8,10 +8,60 @@
           </el-carousel>
       </div>
 
+      <el-dialog
+          :visible.sync="centerDialogVisible"
+          width="30%"
+          class="dialog"
+          :before-close="handleBeforeClose"
+          center>
+         
+            <el-tabs v-model="activeName">
+              <el-tab-pane label="用户登录" name="first">
+                <el-form :model="loginForm" :rules="loginrules" ref="loginForm" label-width="100px" class="login-ruleForm">
+                      <el-form-item label="用户名" prop="username">
+                        <el-input style="width:90%" v-model="loginForm.username"></el-input>
+                      </el-form-item>
+                      <el-form-item label="密码" prop="password">
+                        <el-input style="width:90%" v-model="loginForm.password"></el-input>
+                      </el-form-item>
+                    <el-button class="loginbtn" type="primary" @click="submitloginForm('loginForm')">登 录</el-button>
+                  </el-form>
+                </el-tab-pane>
+              <el-tab-pane label="用户注册" name="second">
+
+                <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+                  <el-form-item label="用户名" prop="username">
+                    <el-input style="width:90%" v-model="ruleForm.username"></el-input>
+                  </el-form-item>
+                  <el-form-item label="密码" prop="password">
+                    <el-input style="width:90%" v-model="ruleForm.password"></el-input>
+                  </el-form-item>
+                  <el-form-item label="昵称" prop="nickname">
+                    <el-input style="width:90%" v-model="ruleForm.nickname"></el-input>
+                  </el-form-item>
+                  <el-form-item label="性别" prop="sex">
+                    <el-radio-group v-model="ruleForm.sex">
+                      <el-radio label="0">男</el-radio>
+                      <el-radio label="1">女</el-radio>
+                    </el-radio-group>
+                  </el-form-item>
+                  <el-form-item label="邮箱" prop="email">
+                    <el-input style="width:90%" v-model="ruleForm.email"></el-input>
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button @click="resetForm('ruleForm')">重置</el-button>
+                  </el-form-item>
+                </el-form>
+               <el-button class="loginbtn" type="success" @click="submitForm('ruleForm')">注 册</el-button>
+              </el-tab-pane>
+            </el-tabs>
+        </el-dialog>
+
     <div class="fenlei">
       <div class="fenlei-title">
         商品分类
       </div>
+
       <div class="fenleis animate__animated animate__fadeInUp">
           <div class="fenleidiv" v-for="(item, index) in fenleiimg" :key="index">
             <div class="fenleipic">
@@ -107,7 +157,9 @@
 </template>
 
 <script>
-
+import {login} from "../api/user"
+import {getuserinfo} from "../api/user"
+import {regist} from '../api/user'
 export default {
   data() {
       return {
@@ -189,7 +241,7 @@ export default {
           }
         ],
         swiperOption: {//swiper3
-          autoplay : 3000,
+          autoplay : 2000,
           slidesPerView : 4,
           speed: 1000,
           spaceBetween : 30,
@@ -198,37 +250,179 @@ export default {
           prevButton:'.swiper-button-prev',
           nextButton:'.swiper-button-next',
         },
+        ruleForm: {
+          username: '',
+          password: '',
+          nickname: '',
+          sex: '',
+          email: ''
+        },
+         rules: {
+          username: [
+            { required: true, message: '请输入用户名', trigger: 'blur' },
+            { min: 2, max: 12, message: '长度在 2 到 12个字符', trigger: 'blur' }
+          ],
+          password: [
+            { required: true, message: '请输入密码', trigger: 'blur' },
+            { min: 3, max: 12, message: '长度在 3 到 12个字符', trigger: 'blur' }
+          ],
+          nickname: [
+            { required: true, message: '请输入昵称', trigger: 'blur' },
+            { min: 2, max: 8, message: '长度在 2 到 8个字符', trigger: 'blur' }
+          ],
+          sex: [
+            { required: true, message: '请选择性别', trigger: 'change' }
+          ],
+          email: [
+            { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+            {
+              type: 'email',
+              message: '请输入正确的邮箱地址',
+              trigger: ['blur'],
+            },
+          ],
+        },
+        loginrules: {
+            username: [
+              { required: true, message: '请输入用户名', trigger: 'blur' },
+              { min: 3, max: 12, message: '长度在 2 到 12个字符', trigger: 'blur' }
+            ],
+            password: [
+              { required: true, message: '请输入密码', trigger: 'blur' },
+              { min: 3, max: 12, message: '长度在 3 到 12个字符', trigger: 'blur' }
+            ],
+        },
         show:'false',
         twoshow: 'false',
-        twothree: 'false'
+        twothree: 'false',
+        activeName: 'first',
+        loginForm: {
+          username: '',
+          password: '',
+        },
       }
       
     },
-  computed: {
-  },
-  methods: {
-        
-  },
-  created() {
-    window.addEventListener('scroll', e => {
-      this.scrollY = window.scrollY
-      if(this.scrollY > 725) {
-        this.show = true
-      } else {
-        this.show = false
+    methods: {
+      handleBeforeClose(done) {
+        this.$store.commit("changeFlase")
+        this.username = ''
+        this.password = ''
+        done()
+      },
+       submitForm(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            let loginParams = {
+              userUsername: this.ruleForm.username,
+              userPassword: this.ruleForm.password,
+              userNickname: this.ruleForm.nickname,
+              userSex: this.ruleForm.sex,
+              userEmail: this.ruleForm.email
+            };
+            regist(loginParams).then(res => {
+              if(res.code == 200) {
+                this.$message({
+                  message: res.data.msg,
+                  type: 'success'
+                });
+                this.resetForm('ruleForm')
+                this.activeName = 'first'
+              }
+              if(res.code == 201) {
+                this.$message({
+                  message: res.data.msg,
+                  type: 'error'
+                });
+              }
+            })
+          } else {
+            this.$message({
+              message: res.data.msg,
+              type: '请按规范提交'
+            });
+            return false;
+          }
+        });
+      },
+      resetForm(formName) {
+        this.$refs[formName].resetFields();
+      }, 
+      submitloginForm(formName){
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            this.tologin()
+          } else {
+            this.$message({
+                  message: res.data.msg,
+                  type: '请按规范提交'
+            });
+            return false;
+          }
+        });
+      },
+      tologin() {
+        login(this.loginForm.username, this.loginForm.password).then(res => {
+              if(res.code == 200) {
+                localStorage.setItem('Token', res.data.token)
+                getuserinfo().then(res => {
+                  localStorage.setItem('userinfo', JSON.stringify(res.data.userinfo))
+                  this.getuser()
+                  this.loginForm.username = ''
+                  this.loginForm.password = ''
+                  this.$store.commit("changeFlase")
+                  }).catch(err => {
+                        
+                  })
+                this.$message({
+                  message: '登陆成功',
+                  type: 'success'
+                });
+              }
+              if(res.code == 201) {
+                this.$message({
+                  message: res.data.msg,
+                  type: 'error'
+                });
+              }
+            }).catch(err => {
+            })
+      },
+      getuser() {
+        this.$store.commit("changeUsername")
       }
-      if (this.scrollY > 1525) {
-        this.twoshow = true
-      } else {
-        this.twoshow = false
+    },
+    computed: {
+      centerDialogVisible: {
+        get(){
+            return this.$store.state.centerDialogVisible
+        },
+        set(v) {
+            this.centerDialogVisible = v
+        }
       }
-      if (this.scrollY > 1830) {
-        this.twothree = true
-      } else {
-        this.twothree = false
-      }
-    })
-  },
+    },
+    created() {
+      window.addEventListener('scroll', e => {
+        this.scrollY = window.scrollY
+        if(this.scrollY > 725) {
+          this.show = true
+        } else {
+          this.show = false
+        }
+        if (this.scrollY > 1525) {
+          this.twoshow = true
+        } else {
+          this.twoshow = false
+        }
+        if (this.scrollY > 1830) {
+          this.twothree = true
+        } else {
+          this.twothree = false
+        }
+      })
+    },
+    
 }
 </script>
 <style scoped>
@@ -415,5 +609,25 @@ export default {
   transition: all .5s linear;
   cursor: pointer;
 }
-
+.loginform {
+  height: 180px;
+  margin: 0 20px;
+}
+.dialog-footer {
+  position: relative;
+}
+.loginbtn {
+  width: 310px;
+  display: block;
+  margin: 0 auto;
+  margin-top: 20px;
+}
+.bottomfont {
+  height: 30px;
+  width: 310px;
+  margin: 0 auto;
+  text-align: end;
+  line-height: 40px;
+  cursor: pointer;
+}
 </style>
