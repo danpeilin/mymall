@@ -1,27 +1,72 @@
 <template>
   <div id="app">
-    <div class="header" :class="show == true ? 'show' : ''">
+    <div class="header" :style="{background:headerback,boxShadow:headershadow}" :class="show == true ? 'show' : ''" >
       <span class="myband">良品服装店</span>
 
       <div class="tags">
-        <div v-for="(item, index) in lis" :key="index" :class="active == index ? 'lis active': 'lis'"  @click="toggletag(index)">
+        <div v-for="(item, index) in lis" :key="index" :class="$route.meta.name == item.name ? 'lis active': 'lis'"  @click="toggletag(index)">
           {{item.title}}
         </div>
-        <div class="lis">
+        <div :class="$route.meta.name == null ? 'lis active' : 'lis'">
           <el-dropdown>
-            <span class="el-dropdown-link">
+            <span class="el-dropdown-link" :class="$route.meta.name == null ? 'lis active' : 'lis'">
               商品分类<i class="el-icon-arrow-down el-icon--right"></i>
             </span>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>黄金糕</el-dropdown-item>
-              <el-dropdown-item>狮子头</el-dropdown-item>
-              <el-dropdown-item>螺蛳粉</el-dropdown-item>
-              <el-dropdown-item disabled>双皮奶</el-dropdown-item>
-              <el-dropdown-item divided >蚵仔煎</el-dropdown-item>
+              <el-dropdown-item v-for="item in cates" :class="itemactive == item.cateId ? 'itemactive': ''" :key="item.cateId" @click.native="togoods(item.cateId)">{{item.cateName}}</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </div>
       </div>
+
+      <el-dialog
+          :visible.sync="centerDialogVisible"
+          width="30%"
+          class="dialog"
+          :modal="false"
+          :before-close="handleBeforeClose"
+          center>
+            <el-tabs v-model="activeName">
+              <el-tab-pane label="用户登录" name="first">
+                <el-form :model="loginForm" :rules="loginrules" ref="loginForm" label-width="100px" class="login-ruleForm">
+                      <el-form-item label="用户名" prop="username">
+                        <el-input style="width:90%" v-model="loginForm.username"></el-input>
+                      </el-form-item>
+                      <el-form-item label="密码" prop="password">
+                        <el-input style="width:90%" v-model="loginForm.password"></el-input>
+                      </el-form-item>
+                    <el-button class="loginbtn" type="primary" @click="submitloginForm('loginForm')">登 录</el-button>
+                  </el-form>
+                </el-tab-pane>
+              <el-tab-pane label="用户注册" name="second">
+
+                <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+                  <el-form-item label="用户名" prop="username">
+                    <el-input style="width:90%" v-model="ruleForm.username"></el-input>
+                  </el-form-item>
+                  <el-form-item label="密码" prop="password">
+                    <el-input style="width:90%" v-model="ruleForm.password"></el-input>
+                  </el-form-item>
+                  <el-form-item label="昵称" prop="nickname">
+                    <el-input style="width:90%" v-model="ruleForm.nickname"></el-input>
+                  </el-form-item>
+                  <el-form-item label="性别" prop="sex">
+                    <el-radio-group v-model="ruleForm.sex">
+                      <el-radio label="0">男</el-radio>
+                      <el-radio label="1">女</el-radio>
+                    </el-radio-group>
+                  </el-form-item>
+                  <el-form-item label="邮箱" prop="email">
+                    <el-input style="width:90%" v-model="ruleForm.email"></el-input>
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button @click="resetForm('ruleForm')">重置</el-button>
+                  </el-form-item>
+                </el-form>
+               <el-button class="loginbtn" type="success" @click="submitForm('ruleForm')">注 册</el-button>
+              </el-tab-pane>
+            </el-tabs>
+        </el-dialog>
 
       <div class="searchbar">
         <el-input v-model="input" placeholder="请输入内容"></el-input>
@@ -29,7 +74,7 @@
       
       <div class="rightarea">
         <div class="avatar" v-if="userNickname != ''"> 
-          <img class="myavatar" src="https://picsum.photos/id/1/200/300" />
+          <img class="myavatar" :src="userAvatar" />
         </div>
         <div class="up">
           <el-button type="text" v-if="userNickname == ''" @click="changeVisible">您好！请登录</el-button>
@@ -46,13 +91,60 @@
             </el-dropdown-menu>
           </el-dropdown>
         </div>
-        <div class="cart">
-          <el-badge :value="12" class="item">
-            <i class="el-icon-shopping-cart-full"></i>
+
+
+        <el-dropdown>
+          <div @click="tocart()" class="cart">
+          <i class="el-icon-shopping-cart-full"></i>
+          <el-badge v-if="this.totalcount != 0" :value="totalcount" class="item">
           </el-badge>
-        </div>
+          </div>
+          <el-dropdown-menu v-if="this.totalcount == 0" slot="dropdown" class="drop">
+            <div class="carttip">
+              您的购物车竟然是空的!
+            </div>
+          </el-dropdown-menu>
+          <el-dropdown-menu v-if="this.totalcount != 0" slot="dropdown" class="drop">
+            <div class="cartwrapper">
+            <div class="cartitem" v-for="item in carts" :key="item.cartId">
+              <div class="cartpic">
+                <div class="cartimg">
+                  <img class="myimg" :src="item.cartPic" />
+                </div>
+              </div>
+              <div class="cartdetail">
+                <div class="detail"> 
+                    <div class="carttitle">
+                      {{item.cartName}}
+                    </div>
+                    <div class="cartprice">
+                      <span class="detailprice">¥ {{item.cartDiscount}}</span><span class="detailcount">x{{item.cartCount}}</span>
+                    </div>
+                </div>
+                <div @click="deltecart(item.cartId)" class="cartdelete">
+                  <i class="el-icon-delete"></i>
+                </div>
+              </div>
+            </div>
+            </div>
+            <div class="cart-bottom">
+              <div class="bottom-left">
+                <div class="bottom-title">
+                  共{{this.totalcount}}件商品
+                </div>
+                <div class="bottom-total">
+                  合计：<span class="detailprice">¥ {{this.totalprice}}</span>
+                </div>
+              </div>
+              <div class="bottom-right">
+                <el-button @click="tocart()" type="primary">去购物车</el-button>
+              </div>
+            </div>
+          </el-dropdown-menu>
+        </el-dropdown>
       </div>
     </div>
+    <div class="tooo"></div>
     <router-view/>
     <div class="bottom-bar">
       
@@ -95,47 +187,189 @@
 </template>
 <script>
 
-import {logout} from "./api/user"
+import {login} from "@/api/user"
+import {getuserinfo} from "@/api/user"
+import {regist} from '@/api/user'
+import {logout} from "@/api/user"
+import {getallcate} from '@/api/cate'
+import {getcartbyid, cartdelete} from '@/api/cart'
 export default {
   data() {
       return {
         input: '',
-        active: 0,
         lis: [
-          {title: '网站首页'},
-          {title: '新到商品'},
-          {title: '热销商品'}
+          {title: '网站首页', name: 'home'},
+          {title: '新到商品', name: 'newgoods'},
+          {title: '热销商品', name: 'hotgoods'}
         ],
+        cates:[],
+        carts:[],
         scrollY: 0,
+        headerback: '',
+        headershadow: '',
         show:'false',
         user:'',
-        userNickname:''
+        totalcount: 0,
+        totalprice: 0,
+        userId: 0,
+        userNickname:'',
+        userAvatar: '',
+        itemactive: 0,
+        loginForm: {
+          username: '',
+          password: '',
+        },
+        ruleForm: {
+          username: '',
+          password: '',
+          nickname: '',
+          sex: '',
+          email: ''
+        },
+         rules: {
+          username: [
+            { required: true, message: '请输入用户名', trigger: 'blur' },
+            { min: 2, max: 12, message: '长度在 2 到 12个字符', trigger: 'blur' }
+          ],
+          password: [
+            { required: true, message: '请输入密码', trigger: 'blur' },
+            { min: 3, max: 12, message: '长度在 3 到 12个字符', trigger: 'blur' }
+          ],
+          nickname: [
+            { required: true, message: '请输入昵称', trigger: 'blur' },
+            { min: 2, max: 8, message: '长度在 2 到 8个字符', trigger: 'blur' }
+          ],
+          sex: [
+            { required: true, message: '请选择性别', trigger: 'change' }
+          ],
+          email: [
+            { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+            {
+              type: 'email',
+              message: '请输入正确的邮箱地址',
+              trigger: ['blur'],
+            },
+          ],
+        },
+        loginrules: {
+            username: [
+              { required: true, message: '请输入用户名', trigger: 'blur' },
+              { min: 3, max: 12, message: '长度在 2 到 12个字符', trigger: 'blur' }
+            ],
+            password: [
+              { required: true, message: '请输入密码', trigger: 'blur' },
+              { min: 3, max: 12, message: '长度在 3 到 12个字符', trigger: 'blur' }
+            ],
+        },
+        centerDialogVisible: false,
+        activeName: 'first',
       }
       
     },
-    computed: {
-      userchange() {
-        return this.$store.state.userchange
-      }
-    },
-    watch: {
-      userchange: function() {
-        if (this.userchange == true) {
-          this.getusername()
-        }
-      }
-    },
     methods: {
+       handleBeforeClose(done) {
+        this.$store.commit("changeFlase")
+        this.loginForm.username = ''
+        this.loginForm.password = ''
+        this.ruleForm = []
+        done()
+      },
+      
+     
+       submitForm(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            let loginParams = {
+              userUsername: this.ruleForm.username,
+              userPassword: this.ruleForm.password,
+              userNickname: this.ruleForm.nickname,
+              userSex: this.ruleForm.sex,
+              userEmail: this.ruleForm.email
+            };
+            regist(loginParams).then(res => {
+              if(res.code == 200) {
+                this.$message({
+                  message: res.data.msg,
+                  type: 'success'
+                });
+                this.resetForm('ruleForm')
+                this.activeName = 'first'
+              }
+              if(res.code == 201) {
+                this.$message({
+                  message: res.data.msg,
+                  type: 'error'
+                });
+              }
+            })
+          } else {
+            this.$message({
+              message: res.data.msg,
+              type: '请按规范提交'
+            });
+            return false;
+          }
+        });
+      },
+      resetForm(formName) {
+        this.$refs[formName].resetFields();
+      }, 
+      submitloginForm(formName){
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            this.tologin()
+          } else {
+            this.$message({
+                  message: res.data.msg,
+                  type: '请按规范提交'
+            });
+            return false;
+          }
+        });
+      },
+      tologin() {
+        login(this.loginForm.username, this.loginForm.password).then(res => {
+              if(res.code == 200) {
+                localStorage.setItem('Token', res.data.token)
+                getuserinfo().then(res => {
+                  localStorage.setItem('userinfo', JSON.stringify(res.data.userinfo))
+                  this.userNickname = res.data.userinfo.userNickname
+                  this.userId = res.data.userinfo.userId
+                  this.userAvatar = res.data.userinfo.userAvatar
+                  this.loginForm.username = ''
+                  this.loginForm.password = ''
+                  this.centerDialogVisible = false
+                  }).catch(err => {
+                        
+                  })
+                this.$message({
+                  message: '登陆成功',
+                  type: 'success'
+                });
+              }
+              if(res.code == 201) {
+                this.$message({
+                  message: res.data.msg,
+                  type: 'error'
+                });
+              }
+            }).catch(err => {
+            })
+      },
         toggletag(index) {
-          this.active = index
+          this.itemactive = ''
+          if (index == 0) {
+            this.$router.push({path: '/'})
+          }
         },
         changeVisible() {
-          this.$store.commit("changeTure")
+          this.centerDialogVisible = true
         },
         getusername() {
           var userinfo = localStorage.getItem('userinfo')
           if(userinfo) {
             var user = JSON.parse(userinfo)
+            this.userId = user.userId
             this.userNickname = user.userNickname
           }
         },
@@ -149,36 +383,107 @@ export default {
               });
           })
           this.userNickname = ''
-          this.$store.commit("changeUsernameFalse")
+          this.userId = 0
         },
         showheader() {
             window.addEventListener('scroll', e => {
               this.scrollY = window.scrollY
-              if(this.scrollY > 690) {
-                this.show = true
-              } else {
-                this.show = false
-              }
+                if(this.scrollY > 690) {
+                  this.show = true
+                } else {
+                  this.show = false
+                }
             })
+        },
+        getallates(){
+          getallcate().then((res)=>{
+            if(res.code == 200){
+              this.cates = res.data.cates
+            }
+          })
+        },
+        togoods(id){
+          this.itemactive = id
+          this.$router.push({path: `/categoods/${id}`})
+        },
+        tocart(){
+          var id = this.userId
+          if(id != 0) {
+            this.$router.push({path: `/cart/${id}`})
+          } else {
+            this.$notify.info({
+              title: '消息',
+              offset: 100,
+              message: '你尚未登录请先登录!'
+            });
+          }
+          
+        },
+        getcart(){
+          if(this.userId != '') {
+            getcartbyid(this.userId).then((res=>{
+              if(res.code == 200) {
+                this.carts = res.data.list
+                this.totalcount = this.carts.length
+                this.carts.forEach((item)=>{
+                  this.totalprice += item.cartDiscount*item.cartCount
+                })
+              }
+            }))
+          }
+        },
+        deltecart(id) {
+          cartdelete(id).then((res)=>{
+            if(res.code == 200) {
+              this.totalprice = 0
+              this.getcart()
+            }
+          })
         }
+  },
+  watch: {
+    $route (to, from) {
+       if (to.meta.name != 'home'){
+        this.headerback = 'white'
+        this.headershadow = '0px 3px 10px 1px #cccccc'
+      } else {
+        this.headerback = ''
+        this.headershadow = ''
+      }
+    },
+    '$store.state.addcart': function () {
+      if(this.$store.state.addcart == true){
+        this.totalprice = 0
+        this.getcart()
+        this.$store.commit('cartfalse')
+      }
+    }
   },
   created() {
     this.getusername()
     this.showheader()
+    this.getallates()
+    this.getcart()
   },
 }
 </script>
 <style>
-* {
-  margin: 0;
-  padding: 0;
+  body {
+    margin: 0!important;
+  }
+</style>
+<style scoped>
+.myimg {
+  width: 100%;
+  height: 100%;
+  vertical-align: middle;
 }
 .header {
   height: 60px;
   width: 100%;
-  min-width: 1920px;
   position: fixed;
   z-index: 99;
+  min-width: 1920px;
   transition: background .5s linear 0s;
 }
 .myband {
@@ -202,9 +507,13 @@ export default {
   display: flex;
   align-items: center;
 }
+.item {
+  margin-left: -10px;
+  margin-top: -20px;
+}
 .lis{
   height: 35px;
-  width: 80px;
+  width: 90px;
   text-align: center;
   line-height: 35px;
   font-size: 14px;
@@ -212,8 +521,15 @@ export default {
   margin-left: 10px;
   border-radius: 25px;
 }
+.tagacive {
+  color: white;
+}
 .active {
   background: #409EFF;
+  color: white;
+}
+.itemactive {
+  background: #D9ECFF;
   color: white;
 }
 .searchbar {
@@ -248,7 +564,7 @@ export default {
 .cart {
   height: 60px;
   width: 100px;
-  line-height: 60px;
+  line-height: 70px;
   margin-left: 20px;
 }
 .cart:hover {
@@ -285,5 +601,131 @@ export default {
   color: #787878;
   font-size: 18px;
   margin-top: 10px;
+}
+.loginform {
+  height: 180px;
+  margin: 0 20px;
+}
+.dialog-footer {
+  position: relative;
+}
+.loginbtn {
+  width: 310px;
+  display: block!important;;
+  margin: 0 auto!important;
+  margin-top: 20px;
+}
+.bottomfont {
+  height: 30px;
+  width: 310px;
+  margin: 0 auto;
+  text-align: end;
+  line-height: 40px;
+  cursor: pointer;
+}
+.carttip {
+  width: 500px;
+  height:300px;
+  text-align: center;
+  line-height: 300px;
+  font-size: 30px;
+  color: #CBCBCB;
+}
+.cartitem {
+  height: 120px;
+  width: 500px;
+  display: flex;
+  transition: all .15s ease-out;
+}
+.cartitem:hover {
+  border-radius: 5px;
+  background: #f8f8f8;
+  transition: all .15s ease-out;
+}
+.cartitem:hover .cartdelete {
+  display: block;
+}
+.cartpic{
+  width: 30%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.cartdetail {
+  width: 70%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+.cartimg {
+  height: 80%;
+  width: 70%;
+}
+.detail {
+  height: 80%;
+  width: 85%;
+}
+.carttitle {
+  font-size: 20px;
+  margin-top: 20px;
+  font-family: YouYuan;
+  font-weight: 700;
+}
+.cartprice {
+  margin-top: 20px;
+}
+.detailprice {
+  font-size: 18px;
+  color: tomato;
+  font-weight: 700;
+}
+.detailcount {
+  margin-left: 20px;
+}
+.cart-bottom {
+  height: 80px;
+  width: 500px;
+  display: flex;
+  border-radius: 0 0 15px 15px;
+  box-shadow: inset 0 -1px 0 hsla(0,0%,100%,.5), 0 -3px 8px rgba(0,0,0,.04);
+  background: linear-gradient(#fafafa,#f5f5f5);
+}
+.drop {
+  padding: 0!important;
+  border-radius: 15px!important;
+}
+.bottom-left {
+  width: 50%;
+  height: 100%;
+}
+.bottom-right {
+  width: 50%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.bottom-title {
+  font-size: 20px;
+  margin-left: 20px;
+  margin-top: 10px;
+  color: #959595;
+}
+.bottom-total {
+  font-size: 20px;
+  margin-left: 20px;
+}
+.cartdelete {
+  display: none;
+  font-size: 20px;
+}
+.cartdelete:hover .el-icon-delete {
+  color: #409EFF;
+  cursor: pointer;
+}
+.cartwrapper {
+  max-height: 600px;
+  overflow-y: auto;
 }
 </style>

@@ -26,7 +26,46 @@ import pay from '../views/mukuai2/wodedingdan/dingdanxiangqing/pay'
 
 Vue.use(VueRouter)
 
+const VueRouterPush = VueRouter.prototype.push
+VueRouter.prototype.push = function push (to) {
+  return VueRouterPush.call(this, to).catch(err => err)
+}
+
 const routes = [
+  {
+    //主页
+    path: '/',
+    name: 'home',
+    meta:{index:0,name:'home'},
+    component: Home,
+  },
+  {
+    path: '/categoods/:id',
+    name: 'categoods',
+    component: () => import('@/views/goods/categoods'),
+    children: [
+      { 
+         path: '', 
+         name:'goods',
+         component: () => import('@/views/goods/cates/goods') 
+      },  
+    ]
+  },
+  {
+    path: '/goodsdetail/:id',
+    name: 'goodsdetail',
+    component: () => import('@/views/goodsdetail/index'),
+  },
+  {
+    path: '/cart/:id',
+    name: 'cart',
+    component: () => import('@/views/cart/index'),
+  },
+  {
+    path: '/checkout/:id',
+    name: 'checkout',
+    component: () => import('@/views/checkout/index'),
+  },
   {
     //个人中心
     path: '/gerenzhongxin',
@@ -75,13 +114,7 @@ const routes = [
     name: 'pay',
     component: pay,
   },
-  {
-    //主页
-    path: '/',
-    name: 'Home',
-    component: Home,
-  }
-  ,
+  
   {
     //我的订单
     path: '/chakanquanbu',

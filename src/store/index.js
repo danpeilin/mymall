@@ -5,21 +5,14 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    centerDialogVisible: false,
-    userchange: false
+    addcart: false
   },
   mutations: {
-    changeTure(state) {
-      state.centerDialogVisible = true
+    carttrue(state){
+      state.addcart = true
     },
-    changeFlase(state) {
-      state.centerDialogVisible = false
-    },
-    changeUsername(state) {
-      state.userchange = true
-    },
-    changeUsernameFalse(state) {
-      state.userchange = false
+    cartfalse(state) {
+      state.addcart = false
     }
   },
   actions: {

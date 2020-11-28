@@ -98,7 +98,7 @@ export default {
 }
 
 </script>
-<style>
+<style scoped>
     .el-form{
         background-color: #e8eff7;
         border:1px solid #a7c6e6;
