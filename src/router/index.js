@@ -67,6 +67,11 @@ const routes = [
     component: () => import('@/views/checkout/index'),
   },
   {
+    path: '/order/:id',
+    name: 'order',
+    component: () => import('@/views/order/index'),
+  },
+  {
     //个人中心
     path: '/gerenzhongxin',
     name: 'gerenzhongxin',
@@ -117,8 +122,8 @@ const routes = [
   
   {
     //我的订单
-    path: '/chakanquanbu',
-    name: 'chakanquanbu',
+    path: '/allorders',
+    name: 'allorders',
     component: chakanquanbu,
     redirect: '/quanbu',
     children: [

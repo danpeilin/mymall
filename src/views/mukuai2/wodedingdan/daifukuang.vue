@@ -119,6 +119,7 @@
 </template>
 
 <script>
+import {getorderfukuan} from '@/api/order'
 export default {
      filters: {
       keepTwoNum(value){
@@ -130,6 +131,8 @@ export default {
       return {
          s:'',
          li:'',
+         userId: '',
+         orders: [],
         tableData: [{
           imgsrc: require('../../../assets/fenlei2.png'),
           describe: '女士内衣新型收拢运动内衣 女M 天蓝色',
@@ -194,9 +197,26 @@ export default {
           });
         });
       },
+      getuserid() {
+         var userinfo = localStorage.getItem('userinfo')
+          if(userinfo) {
+            var user = JSON.parse(userinfo)
+            this.userId = user.userId
+         }
+      },
+      getall() {
+         getorderfukuan(this.userId).then((res)=>{
+            if(res.code == 200) {
+
+            }
+         })
+      },
       payment(){
           this.$router.push({path: '/payment'})
       },
+    },
+    created() {
+       this.getuserid()
     }
       
   }

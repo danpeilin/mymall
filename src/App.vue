@@ -85,7 +85,7 @@
               {{this.userNickname}}，您好！<i class="el-icon-arrow-down el-icon--right"></i>
             </span>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>我的订单</el-dropdown-item>
+              <el-dropdown-item @click.native="toorders">我的订单</el-dropdown-item>
               <el-dropdown-item >个人中心</el-dropdown-item>
               <el-dropdown-item divided @click.native="logout">注销</el-dropdown-item>
             </el-dropdown-menu>
@@ -439,6 +439,9 @@ export default {
               this.getcart()
             }
           })
+        },
+        toorders() {
+          this.$router.push({path: '/allorders'})
         }
   },
   watch: {

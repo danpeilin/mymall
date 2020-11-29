@@ -125,13 +125,19 @@ export default {
             })
         },
         getcolors(){
-            getallcolor().then((res)=>{
-                this.colors = res.data.colorlist
+            getallcolor(this.goodsId).then((res)=>{
+                if(res.code == 200) {
+                    this.colors = res.data.list
+                }
+                
             })
         },
+        clearall(){
+            
+        },
         getsize(){
-            getallsize().then((res)=>{
-                this.sizes = res.data.sizelist
+            getallsize(this.goodsId).then((res)=>{
+                this.sizes = res.data.list
             })
         },
         getfivepic(id) {

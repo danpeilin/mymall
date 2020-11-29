@@ -14,3 +14,10 @@ export function getalltobuy(id) {   //请求接口
     method: 'get'
   })
 }
+
+export function delteall(id) {   //请求接口
+  return request({
+    url: `/tobuy/delteall/${id}`,
+    method: 'get'
+  })
+}

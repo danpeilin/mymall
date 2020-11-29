@@ -1,106 +1,49 @@
 <template style="background-color: #fff">
 <div>
    <!-- 一部分 -->
-   <el-container style="border-radius:0.5vw;border: 1px solid rgb(144, 206, 230)">
+   <el-container style="border-radius:0.5vw;border: 1px solid rgb(144, 206, 230);margin-bottom: 20px;" v-for="item in orders" :key="item.index">
       <el-header>
          <el-row>
-            <el-col :span="6"><div>下单日期：{{date}}</div></el-col>
-            <el-col :span="6"><div>订单号：{{id}}</div></el-col>
-            <el-col :span="6"><div>订单状态：{{state}}</div></el-col>
-            <el-col :span="6"><div><el-link :underline="false"  @click="open" class="delete"></el-link></div></el-col>
+            <el-col :span="6"><div>下单日期：{{item.gmtCreate}}</div></el-col>
+            <el-col :span="6"><div>订单号：{{item.orderCode}}</div></el-col>
+            <el-col :span="6"><div>订单状态：{{item.orderStatus}}</div></el-col>
+            <el-col :span="6"><div><el-link :underline="false"  @click="deleteorder(item.orderId)" class="delete">删除订单</el-link></div></el-col>
          </el-row>
       </el-header>
       <el-main>
          <el-table class="table"
          show-summary
-            :data="tableData"
-            :summary-method="getSummaries"
+            :data="item.orderdetails"
             border
             style="width: 100%"
             :show-header="false">
             <el-table-column
                width="180">
                <template slot-scope="scope">
-                  <img :src="scope.row.imgsrc" width="50vw" height="50vw"/>
+                  <img :src="scope.row.odetailPic" width="50vw" height="50vw"/>
                </template>
             </el-table-column>
             <el-table-column
-               prop="describe">
+               prop="odetailName">
             </el-table-column>
             <el-table-column
-               prop="price"
+               prop="odetailNum"
                width="180">
             </el-table-column>
             <el-table-column
-               prop="number"
+               prop="odetailPrice"
                width="180">
             </el-table-column>
             <el-table-column
+               prop="odetailTotalprice"
                width="180">
-                <template slot-scope="scope">
-                     <span>￥</span>
-                     {{ (scope.row.sum = scope.row.price *scope.row.number)| keepTwoNum}}
-                </template>
             </el-table-column>
          </el-table>
          <div class="hr"></div> 
          <!-- 查看订单详情 -->
          <el-row style="padding-top:1vw">
-            <el-button @click="details">查看订单详情</el-button>
-            <span style="float: right;">总金额(含运费12.0元) : ￥{{s}}</span>
-         </el-row>
-
-      </el-main>
-   </el-container>
-
-<!--二部分  -->
-   <el-container style="border-radius:0.5vw;border: 1px solid rgb(144, 206, 230);margin-top:1vw">
-      <el-header>
-         <el-row>
-            <el-col :span="6"><div>下单日期：{{date1}}</div></el-col>
-            <el-col :span="6"><div>订单号：{{id1}}</div></el-col>
-            <el-col :span="6"><div>订单状态：{{state1}}</div></el-col>
-            <el-col :span="6"><div><el-link :underline="false" @click="open" class="delete">删除订单</el-link></div></el-col>
-         </el-row>
-      </el-header>
-      <el-main>
-         <el-table class="table"
-         show-summary
-            :data="tableData1"
-            :summary-method="getSummarie"
-            border
-            style="width: 100%"
-            :show-header="false">
-            <el-table-column
-               width="180">
-               <template slot-scope="scope">
-                  <img :src="scope.row.imgsrc" width="50vw" height="50vw"/>
-               </template>
-            </el-table-column>
-            <el-table-column
-               prop="describe">
-            </el-table-column>
-            <el-table-column
-               prop="price"
-               width="180">
-            </el-table-column>
-            <el-table-column
-               prop="number"
-               width="180">
-            </el-table-column>
-            <el-table-column
-               width="180">
-                <template slot-scope="scope">
-                     <span>￥</span>
-                     {{ (scope.row.sum = scope.row.price *scope.row.number)| keepTwoNum}}
-                </template>
-            </el-table-column>
-         </el-table>
-         <div class="hr"></div> 
-         <!-- 查看订单详情 -->
-         <el-row style="padding-top:1vw">
-            <el-button @click="details">查看订单详情</el-button>
-            <span style="float: right;">总金额(含运费12.0元)&nbsp;:&nbsp;￥{{li}}</span>
+            <el-button @click="details(item.orderId)">查看订单详情</el-button>
+            <span style="float: right;">总金额(不含运费) : ￥{{item.total}}</span>
          </el-row>
 
       </el-main>
@@ -109,6 +52,7 @@
 </template>
 
 <script>
+import {getorderbyuser, deleteorder} from '@/api/order'
 export default {
      filters: {
       keepTwoNum(value){
@@ -120,23 +64,8 @@ export default {
       return {
          s:'',
          li:'',
-        tableData: [{
-          imgsrc: require('../../../assets/fenlei2.png'),
-          describe: '男装 军旅式短茄克22 男式XL 黑色',
-          price: '177.0',
-          number: '1'
-        }],
-        tableData1: [{
-          imgsrc: require('../../../assets/fenlei1.png'),
-          describe: '女装军旅式短茄克17女式XS 浅绿色',
-          price: '23.0',
-          number: '1',
-        },{
-          imgsrc: require('../../../assets/fenlei2.png'),
-          describe: '女装军旅式短茄克1女式XS 黑色',
-          price: '233.0',
-          number: '1',
-        }],
+         userId: '',
+         orders:[],
           date: '2017-08-23',
           id: '20170823125714839064',
           state: '已提交退款申请，请等待商家处理',
@@ -149,39 +78,22 @@ export default {
        details(){
           this.$router.push({path:'/dingdanxiangqing'})
        },
-       getSummaries(param) {
-         const { columns, data } = param;
-         var s = 0;
-         data.forEach((data, index) => {
-            s += data.sum;
-         })
-         console.log(s)
-         this.s = s+12;
-         const sums = [];
-         return sums;
-      },
-      getSummarie(param) {
-         const { columns, data } = param;
-         var li = 0;
-         data.forEach((data, index) => {
-            li += data.sum;
-         })
-         console.log(li)
-         this.li = li+12;
-         const sums = [];
-         return sums;
-      },
-      open(){
+      deleteorder(id){
          this.$confirm('确定删除这个订单吗？, 是否继续?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning',
           center: true
         }).then(() => {
-          this.$message({
-            type: 'success',
-            message: '删除成功!'
-          });
+           deleteorder(id).then((res) =>{
+              if(res.code == 200) {
+                  this.$message({
+                     type: 'success',
+                     message: '删除成功!'
+                  });
+                  this.getall()
+              }
+           })
         }).catch(() => {
           this.$message({
             type: 'info',
@@ -189,6 +101,33 @@ export default {
           });
         });
       },
+      getall() {
+         getorderbyuser(this.userId).then((res)=>{
+            if(res.code == 200) {
+               this.orders = res.data.list
+               var totalprice = 0
+               this.orders.forEach(item => {
+                  item.orderdetails.forEach(item => {
+                     totalprice += item.odetailTotalprice
+                     
+                  })
+                     item.total = totalprice
+                     totalprice = 0
+               });
+            }
+         })
+      },
+      getuserid() {
+         var userinfo = localStorage.getItem('userinfo')
+          if(userinfo) {
+            var user = JSON.parse(userinfo)
+            this.userId = user.userId
+         }
+      }
+    },
+    created() {
+       this.getuserid()
+       this.getall()
     }
       
   }
