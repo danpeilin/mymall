@@ -70,6 +70,7 @@
 
       <div class="searchbar">
         <el-input v-model="input" placeholder="请输入内容"></el-input>
+        
       </div>
       
       <div class="rightarea">

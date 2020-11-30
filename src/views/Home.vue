@@ -16,12 +16,12 @@
       </div>
 
       <div class="fenleis animate__animated animate__fadeInUp">
-          <div class="fenleidiv" v-for="(item, index) in fenleiimg" :key="index">
+          <div class="fenleidiv" v-for="(item, index) in fenleiimg" :key="index" @click="to_view(item.cateId,'categoods')">
             <div class="fenleipic">
-              <img class="myimg" :src="item.img"/>
+              <img class="myimg" :src="item.catePic"/>
             </div>
             <div class="fenleitext">
-              {{item.title}}
+              {{item.cateName}}
             </div>
           </div>
       </div>
@@ -33,15 +33,15 @@
       </div>
       <div class="swiper-button-prev swiper-button-white"></div>
       <swiper :class="show == true ? 'newcomer animate__animated animate__fadeInUp' : 'hide animate__animated animate__backOutRight'"  :options="swiperOption">
-        <swiper-slide class="newcome" v-for="(item, index) in newimglist" :key="index">
+        <swiper-slide class="newcome" v-for="(item, index) in newimglist" :key="index" @click.native="to_view(item.goodsId,'goodsdetail')">
           <div class="newimg">
-            <img class="myimg" :src="item.img" />
+            <img class="myimg" :src="item.goodsPic" />
           </div>
           <div class="newname">
-            {{item.name}}
+            {{item.goodsName}}
           </div>
           <div class="newprice">
-            {{item.price}}
+            {{item.goodsPrice}}
           </div>
         </swiper-slide>
       </swiper>
@@ -52,64 +52,63 @@
       <div class="fenlei-title">
         官方精选
       </div>
-
+      
       <div class="topbar-body">
         <div class="itembody">
-          <div :class="twoshow == true ? 'itemone itemmove animate__animated animate__fadeInLeft' : 'twohide animate__animated animate__fadeOutLeft'">
+          <div @click="to_view(featured[0].goodsId,'goodsdetail')" :class="twoshow == true ? 'itemone itemmove animate__animated animate__fadeInLeft' : 'twohide animate__animated animate__fadeOutLeft'">
             <div class="leftitem">
-              <img class="myimg jinxuan" src="../assets/jinxuan1.png"/>
+              <img class="myimg jinxuan" :src="featured[0].goodsPic"/>
             </div>
             <div class="topbartext">
-              茵曼粉色印花t恤女2020夏装新款纯棉
+              {{featured[0].goodsName}}
             </div>
           </div>
         </div>
         <div class="itembody">
-          <div :class="twoshow == true ? 'itemtwo itemmove animate__animated animate__fadeInDown' : 'twohide animate__animated animate__fadeOutUp'">
+          <div @click="to_view(featured[1].goodsId,'goodsdetail')" :class="twoshow == true ? 'itemtwo itemmove animate__animated animate__fadeInDown' : 'twohide animate__animated animate__fadeOutUp'">
             <div class="centeritem">
-              <img class="myimg jinxuan" src="../assets/jinxuan2.png"/>
+              <img class="myimg jinxuan" :src="featured[1].goodsPic"/>
             </div>
             <div class="topbartext">
-              江南素兮设计师原创汉服汉元素女士
+              {{featured[1].goodsName}}
             </div>
           </div>
-          <div :class="twothree == true ? 'itemthree itemmove animate__animated animate__fadeInUp' : 'twohide animate__animated animate__fadeOutDown'">
+          <div @click="to_view(featured[2].goodsId,'goodsdetail')" :class="twothree == true ? 'itemthree itemmove animate__animated animate__fadeInUp' : 'twohide animate__animated animate__fadeOutDown'">
             <div class="centeritem-two-center">
-              <img class="myimg jinxuan" src="../assets/jinxuan3.png"/>
+              <img class="myimg jinxuan" :src="featured[2].goodsPic"/>
             </div>
             <div class="topbartext">
-              乐町情侣印花短袖T恤女2019年夏季
+              {{featured[2].goodsName}}
             </div>
           </div>
         </div>
         <div class="itembody">
-          <div :class="twoshow == true ? 'itemfour itemmove animate__animated animate__fadeInRight' : 'twohide animate__animated animate__fadeOutRight'">
+          <div @click="to_view(featured[3].goodsId,'goodsdetail')" :class="twoshow == true ? 'itemfour itemmove animate__animated animate__fadeInRight' : 'twohide animate__animated animate__fadeOutRight'">
             <div class="centeritem-two">
-              <img class="myimg jinxuan" src="../assets/jinxuan4.png"/>
+              <img class="myimg jinxuan" :src="featured[3].goodsPic"/>
             </div>
             <div class="kongge">
               <div class="topbartext">
-                ONE MORE文墨2016秋装新品长袖
+                {{featured[3].goodsName}}
               </div>
             </div>
           </div>
-          <div :class="twothree == true ? 'itemfive itemmove animate__animated animate__fadeInUp' : 'twohide animate__animated animate__fadeOutDown'">
+          <div @click="to_view(featured[4].goodsId,'goodsdetail')" :class="twothree == true ? 'itemfive itemmove animate__animated animate__fadeInUp' : 'twohide animate__animated animate__fadeOutDown'">
             <div class="centeritem">
-              <img class="myimg jinxuan" src="../assets/jinxuan5.png"/>
+              <img class="myimg jinxuan" :src="featured[4].goodsPic"/>
             </div>
             <div class="topbartext">
-              乐町黑科技T环保白色短袖T恤
+              {{featured[4].goodsName}}
             </div>
           </div>
         </div>
-      </div>
-
+      </div>  
     </div>
-
   </div>
 </template>
 
 <script>
+import {getCategory,getNewGoods,getFeatured} from '@/api/home'
 export default {
   data() {
       return {
@@ -124,72 +123,9 @@ export default {
             lunbo: require('../assets/lunbo3.jpg')
           }
         ],
-        fenleiimg: [
-          {
-            img: require('../assets/fenlei1.png'),
-            title: '女装'
-          },
-          {
-            img: require('../assets/fenlei2.png'),
-            title: '男装'
-          },
-          {
-            img: require('../assets/fenlei3.png'),
-            title: '女士内衣'
-          },
-          {
-            img: require('../assets/fenlei4.png'),
-            title: '男士内衣'
-          },
-          {
-            img: require('../assets/fenlei5.png'),
-            title: '女鞋'
-          },
-          {
-            img: require('../assets/fenlei6.png'),
-            title: '男鞋'
-          },
-          {
-            img: require('../assets/fenlei7.png'),
-            title: '连衣裙'
-          },
-          {
-            img: require('../assets/fenlei8.png'),
-            title: '儿童装'
-          }
-        ],
-        newimglist:[
-          {
-            img: require('../assets/xindao1.jpg'),
-            price: 718,
-            name: '长袖'
-          },
-          {
-            img: require('../assets/xindao2.jpg'),
-            price: 718,
-            name: '长袖'
-          },
-          {
-            img: require('../assets/xindao3.jpg'),
-            price: 718,
-            name: '长袖'
-          },
-          {
-            img: require('../assets/xindao4.jpg'),
-            price: 718,
-            name: '长袖'
-          },
-          {
-            img: require('../assets/xindao5.jpg'),
-            price: 718,
-            name: '长袖'
-          },
-          {
-            img: require('../assets/xindao6.jpg'),
-            price: 718,
-            name: '长袖'
-          }
-        ],
+        fenleiimg: [],
+        newimglist:[],
+        featured: [{},{},{},{},{}],
         swiperOption: {//swiper3
           autoplay : 2000,
           slidesPerView : 4,
@@ -203,33 +139,61 @@ export default {
         show:'false',
         twoshow: 'false',
         twothree: 'false',
-  
       }
       
     },
     methods: {
+      to_view(id,url){
+        this.$router.push({path: `/`+url+`/${id}`})
+      },
+      get_fenlei(){
+        getCategory().then((res) => {
+          if(res.code == 200){
+            this.fenleiimg = res.data.category;
+          }
+        });
+      },
+      get_jingxuan(){
+        getFeatured().then((res) => {
+          if(res.code == 200){
+            this.featured = res.data.featured;
+          }
+        });
+      },
+      get_xinpin(){
+        getNewGoods().then((res) => {
+          if(res.code == 200){
+            this.newimglist = res.data.newGoods;
+          }
+        });
+      },
+      set_scroll(){
+        window.addEventListener('scroll', e => {
+        this.scrollY = window.scrollY
+          if(this.scrollY > 725) {
+            this.show = true
+          } else {
+            this.show = false
+          }
+          if (this.scrollY > 1525) {
+            this.twoshow = true
+          } else {
+            this.twoshow = false
+          }
+          if (this.scrollY > 1830) {
+            this.twothree = true
+          } else {
+            this.twothree = false
+          }
+        })
+      }
     },
     created() {
-      window.addEventListener('scroll', e => {
-        this.scrollY = window.scrollY
-        if(this.scrollY > 725) {
-          this.show = true
-        } else {
-          this.show = false
-        }
-        if (this.scrollY > 1525) {
-          this.twoshow = true
-        } else {
-          this.twoshow = false
-        }
-        if (this.scrollY > 1830) {
-          this.twothree = true
-        } else {
-          this.twothree = false
-        }
-      })
-    },
-    
+      this.get_fenlei();
+      this.get_xinpin();
+      this.get_jingxuan();
+      this.set_scroll();
+    }
 }
 </script>
 <style scoped>
