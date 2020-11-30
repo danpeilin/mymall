@@ -13,3 +13,10 @@ export function getgoodsbyid(id) {   //请求接口
     method: 'get'
   })
 }
+
+export function getcolorbyid(id) {   //请求接口
+  return request({
+    url: `/color/getcolorbyid/${id}`,
+    method: 'get'
+  })
+}

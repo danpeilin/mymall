@@ -42,3 +42,17 @@ export function getorderfukuan(id) {   //请求接口
     method: 'get'
   })
 }
+
+export function deletereal(id) {   //请求接口
+  return request({
+    url: `/orders/deletereal/${id}`,
+    method: 'get'
+  })
+}
+
+export function getorderguanbi(id) {   //请求接口
+  return request({
+    url: `/orders/getorderguanbi/${id}`,
+    method: 'get'
+  })
+}

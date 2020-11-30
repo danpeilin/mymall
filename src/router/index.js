@@ -178,10 +178,15 @@ const routes = [
   ,
   {
     //订单详情
-    path: '/dingdanxiangqing',
+    path: '/dingdanxiangqing/:id',
     name: 'dingdanxiangqing',
     component: dingdanxiangqing,
-  }
+  },
+  {
+    path: '*',
+    name: 'error',
+    component: () => import('@/views/error'),
+  },
 ]
 
 const router = new VueRouter({

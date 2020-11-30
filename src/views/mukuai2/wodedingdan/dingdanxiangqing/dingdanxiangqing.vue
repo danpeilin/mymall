@@ -13,16 +13,17 @@
              <hr>
              <el-row class="toubuyangshi">
                  <el-col :span="16" style="text-align:left;">
-                    <span>订单编号：20160924115952966076</span>
+                    <span>订单编号：{{orders.orderCode}}</span>
                  </el-col>
-                  <el-col :span="8" style="text-align:left;">创建时间：2016-09-24</el-col>
+                  <el-col :span="8" style="text-align:left;">创建时间：{{orders.gmtCreate}}</el-col>
              </el-row>
              <hr>
              <el-row class="toubuyangshi">
                  <el-col :span="16" style="text-align:left;" >
-                    <span>订单状态：等待付款</span>
+                    <span v-if="orders.orderStatus == 3">订单状态：交易关闭</span>
+                    <span v-if="orders.orderStatus == 2">订单状态：等待付款</span>
                  </el-col>
-                  <el-col :span="8" style="text-align:left;">送货地址：</el-col>
+                  <el-col :span="8" style="text-align:left;">送货地址：{{orders.orderAddress}}</el-col>
              </el-row>
 
              <div class="buju">
@@ -31,57 +32,56 @@
            </el-row>
              <el-table
              class="table"
-             show-summary
-                  :data="tableData"
-                   :summary-method="getSummaries"
-                    border
+              :data="list"
+                border
                 style="width: 100%">
-     <el-table-column
-      prop="id"
-      label="#"
-      width="100">
-    </el-table-column>
-    <el-table-column
-    width="120"
-      label="商品图片"
-      >
-      <template slot-scope="scope">
-          
-           <img :src="scope.row.imgsrc" width="60" height="60"/>
-      </template> 
-    </el-table-column>
-    <el-table-column
-    prop="mingcheng"
-    width="500"
-      label="商品名称">
-    </el-table-column>
-    <el-table-column
-      prop="amount1"
-      label="商品单价">
-    </el-table-column>
-    <el-table-column
-      prop="amount2"
-      label="数量">
-    </el-table-column>
-    <el-table-column
-     prop="amount3"
-      label="小计">
-       <template  slot-scope="scope">
-              ￥{{ (scope.row.sum = scope.row.amount1 *scope.row.amount2)| keepTwoNum}}
-        </template>
-    </el-table-column>
-  </el-table>
-  </div>
-  <hr>
-  <div class="yunfei">
-   <span class="yun"> 运费：￥10</span>
-  </div>
-  <hr>
-  <div class="yunfei">
-    <span class="yun2">
-    订单总金额(含运费)：<span>￥{{li}}</span>
-    </span>
-  </div>
+                <el-table-column
+                  prop="odetailId"
+                  label="#"
+                  width="100">
+                </el-table-column>
+                <el-table-column
+                width="120"
+                  label="商品图片"
+                  >
+                  <template slot-scope="scope">
+                      
+                      <img :src="scope.row.odetailPic" width="60" height="60"/>
+                  </template> 
+                </el-table-column>
+                <el-table-column
+                prop="odetailName"
+                width="500"
+                  label="商品名称">
+                </el-table-column>
+                <el-table-column
+                  label="商品单价">
+                  <template slot-scope="scope">
+                      <div>¥{{scope.row.odetailPrice}}</div>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  prop="odetailNum"
+                  label="数量">
+                </el-table-column>
+               <el-table-column
+                  label="小计">
+                  <template slot-scope="scope">
+                      <div>¥{{scope.row.odetailTotalprice}}</div>
+                  </template>
+                </el-table-column>
+              </el-table>
+              </div>
+              <hr>
+              <div class="yunfei">
+              <span class="yun"> 运费：￥0</span>
+              </div>
+              <hr>
+              <div class="yunfei">
+                <span class="yun2">
+                订单总金额(不含运费)：<span>￥{{total}}</span>
+                </span>
+              </div>
 
 
 </div>
@@ -93,6 +93,7 @@
 </template>
 
 <script>
+import {getallorder} from '@/api/order'
   export default {
      filters: {
       keepTwoNum(value){
@@ -102,61 +103,46 @@
     },
     data() {
       return {
-        tableData: [
-          {
-          id: '1',
-          mingcheng:'女装 军旅式短茄克1  女式XS 黑色',
-          imgsrc: require('../../../../assets/fenlei1.png'),
-          amount1: '233',
-          amount2: '2',
-          amount3:''
-        }, {
-          id: '2',
-          mingcheng:'女士内衣 新型收拢运动内衣  女式M  天蓝色',
-          imgsrc: require('../../../../assets/fenlei1.png'),
-          amount1: '100',
-          amount2: '2',
-          amount3:''
-        }, {
-          id: '3',
-          mingcheng:'测试  女式S 白色',
-          imgsrc: require('../../../../assets/fenlei2.png'),
-          amount1: '222',
-          amount2: '1',
-          amount3:''
-        }, {
-          id: '4',
-           mingcheng:'女装 军旅式短茄克2  女式XS  粉红色',
-          imgsrc: require('../../../../assets/fenlei1.png'),
-          amount1: '243',
-          amount2: '1',
-          amount3:''
-        }, {
-          id: '5',
-           mingcheng:'女装 军旅式短茄克2  女式XS  粉红色',
-          imgsrc: require('../../../../assets/fenlei1.png'),
-          amount1: '300',
-          amount2: '1',
-          amount3:''
-        }],
-        li:0
+        orders: {},
+        list: [],
+        li:0,
+        userId: 0,
+        orderId: 0,
+        total: 0,
       };
      
     },
     methods: {
-       getSummaries(param) {
-        const { columns, data } = param;
-        var li = 0
-        data.forEach((data, index) => {
-          li += data.sum
+      getuserid() {
+         var userinfo = localStorage.getItem('userinfo')
+          if(userinfo) {
+            var user = JSON.parse(userinfo)
+            this.userId = user.userId
+        }
+      },
+      getorderId() {
+        this.orderId = this.$route.params.id
+      },
+      getall() {
+        getallorder(this.orderId).then((res)=>{
+          this.orders = res.data.order
+          var dateee = new Date(this.orders.gmtCreate).toJSON();
+          var date = new Date(+new Date(dateee) + 8 * 3600 * 1000).toISOString().replace(/T/g, ' ').replace(/\.[\d]{3}Z/, '')
+          this.orders.gmtCreate = date
+          console.log(this.orders)
+          this.list = res.data.list
+          this.list.forEach((item) => {
+            this.total += item.odetailTotalprice
+          })
         })
-        console.log(li)
-        this.li = li+10
-        const sums = [];
-        return sums;
       }
-    }
-    ,mounted(){
+    },
+    created(){
+      this.getuserid()
+      this.getorderId()
+      this.getall()
+    },
+    mounted(){
     }
   };
 </script>

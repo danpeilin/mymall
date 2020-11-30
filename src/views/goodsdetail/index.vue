@@ -53,7 +53,7 @@
                             </el-option>
                         </el-select>
                         <div class="postfee">
-                            数量：<el-input-number size="mini" v-model="num" :min="1" :max="99" label="描述文字"></el-input-number>
+                            数量：<el-input-number size="mini" @change="handleChange" v-model="num" :min="1" :max="99" label="描述文字"></el-input-number>
                         </div>
                         <div class="postfee">
                             产地：{{this.goods.goodsOrigin}}
@@ -92,10 +92,11 @@
 </template>
 <script>
 import {getgoodsbyid} from '@/api/goods'
-import {getallcolor} from '@/api/color'
-import {getallsize} from '@/api/size'
+import {getallcolor, getcolorbyid} from '@/api/color'
+import {getallsize, getsizebyid} from '@/api/size'
 import {getsmallpic, getallpic} from '@/api/pic'
 import {addcart} from '@/api/cart'
+import {addtobuy} from '@/api/tobuy'
 export default {
      data () {
       return {
@@ -110,7 +111,10 @@ export default {
         allpics: [],
         activeid:0,
         activesrc: '',
-        userId: ''
+        userId: '',
+        totalprice: 0,
+        colorName: '',
+        sizeName: ''
       };
     },
     methods: {
@@ -121,8 +125,15 @@ export default {
             getgoodsbyid(this.goodsId).then((res)=>{
                 if(res.code == 200) {
                     this.goods = res.data.list
+                    var ll = this.num * this.goods.goodsDiscount
+                    this.totalprice = ll
                 }
             })
+        },
+        handleChange () {
+            this.totalprice = 0
+            var ll = this.num * this.goods.goodsDiscount
+            this.totalprice = ll
         },
         getcolors(){
             getallcolor(this.goodsId).then((res)=>{
@@ -132,7 +143,34 @@ export default {
                 
             })
         },
-        clearall(){
+        getcolorsize(){
+            getcolorbyid(this.colorId).then((res)=>{
+                if(res.code == 200) {
+                    this.colorName = res.data.color
+                     getsizebyid(this.sizeId).then((res)=>{
+                        if(res.code == 200) {
+                            this.sizeName = res.data.size
+                            let data = {
+                                    goodsId: this.goodsId,
+                                    cartSize: this.sizeName,
+                                    cartColor: this.colorName,
+                                    userId: this.userId,
+                                    cartName: this.goods.goodsName,
+                                    cartPic: this.goods.goodsPic,
+                                    cartPirce: this.goods.goodsPrice,
+                                    cartDiscount: this.goods.goodsDiscount,
+                                    cartCount: this.num,
+                                    cartTotalprice: this.totalprice
+                            }
+                            addtobuy(data).then((res)=>{
+                                if(res.code == 200) {
+                                    this.$router.push({path: `/checkout/${this.userId}`})
+                                }
+                            })
+                        }
+                    })
+                }
+            })
             
         },
         getsize(){
@@ -148,7 +186,6 @@ export default {
         },
         togglepic(index, src){
             this.activeid = index
-            console.log(src)
             this.activesrc = src
         },
         getallpics(id){
@@ -163,6 +200,17 @@ export default {
                     title: '消息',
                     message: '你尚未登录请先登录!'
                 });
+            }else if (this.sizeId == '' || this.colorId == ''){
+               this.$notify({
+                    title: '提示',
+                    message: '您还未选择颜色或尺寸',
+                    offset: 100,
+                    type: 'warning'
+                });
+            } else {
+                
+                this.getcolorsize()
+                
             }
         },
         addcart(){
@@ -208,7 +256,7 @@ export default {
             } else{
                 this.userId = ''
             }
-        }
+        },
     },
     created(){
         this.getindex()

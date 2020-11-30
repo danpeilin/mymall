@@ -6,8 +6,11 @@
          <el-row>
             <el-col :span="6"><div>下单日期：{{item.gmtCreate}}</div></el-col>
             <el-col :span="6"><div>订单号：{{item.orderCode}}</div></el-col>
-            <el-col :span="6"><div>订单状态：{{item.orderStatus}}</div></el-col>
-            <el-col :span="6"><div><el-link :underline="false"  @click="deleteorder(item.orderId)" class="delete">删除订单</el-link></div></el-col>
+            <el-col :span="6" v-if="item.orderStatus == 2"><div>订单状态：等待付款</div></el-col>
+            <el-col :span="6" v-if="item.orderStatus == 3"><div>订单状态：交易关闭</div></el-col>
+             <el-col :span="6" v-if="item.orderStatus == 3"><div><el-link :underline="false"  @click="todelete(item.orderId)" class="delete">删除订单</el-link></div></el-col>
+            <el-col :span="5" v-if="item.orderStatus == 2"><div><el-link :underline="false" @click="payment" class="delete">去付款</el-link></div></el-col>
+            <el-col :span="1" v-if="item.orderStatus != 3"><div><el-link :underline="false"  @click="deleteorder(item.orderId)" class="delete">取消订单</el-link></div></el-col>
          </el-row>
       </el-header>
       <el-main>
@@ -27,16 +30,20 @@
                prop="odetailName">
             </el-table-column>
             <el-table-column
+               width="180">
+               <template slot-scope="scope">
+                  <div>¥{{scope.row.odetailPrice}}</div>
+               </template>
+            </el-table-column>
+            <el-table-column
                prop="odetailNum"
                width="180">
             </el-table-column>
             <el-table-column
-               prop="odetailPrice"
                width="180">
-            </el-table-column>
-            <el-table-column
-               prop="odetailTotalprice"
-               width="180">
+               <template slot-scope="scope">
+                  <div>¥{{scope.row.odetailTotalprice}}</div>
+               </template>
             </el-table-column>
          </el-table>
          <div class="hr"></div> 
@@ -52,7 +59,7 @@
 </template>
 
 <script>
-import {getorderbyuser, deleteorder} from '@/api/order'
+import {getorderbyuser, deleteorder, deletereal} from '@/api/order'
 export default {
      filters: {
       keepTwoNum(value){
@@ -75,11 +82,11 @@ export default {
       };
     },
     methods: {
-       details(){
-          this.$router.push({path:'/dingdanxiangqing'})
-       },
+      details(id){
+          this.$router.push({path:`/dingdanxiangqing/${id}`})
+      },
       deleteorder(id){
-         this.$confirm('确定删除这个订单吗？, 是否继续?', '提示', {
+         this.$confirm('确定取消这个订单吗？, 是否继续?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning',
@@ -89,7 +96,7 @@ export default {
               if(res.code == 200) {
                   this.$message({
                      type: 'success',
-                     message: '删除成功!'
+                     message: '成功!'
                   });
                   this.getall()
               }
@@ -97,7 +104,33 @@ export default {
         }).catch(() => {
           this.$message({
             type: 'info',
-            message: '已取消删除'
+            message: '已取消'
+          });
+        });
+      },
+      payment(){
+          this.$router.push({path: '/payment'})
+      },
+      todelete(id) {
+         this.$confirm('确定取消这个订单吗？, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+          center: true
+        }).then(() => {
+           deletereal(id).then((res) =>{
+              if(res.code == 200) {
+                  this.$message({
+                     type: 'success',
+                     message: '成功!'
+                  });
+                  this.getall()
+              }
+           })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消'
           });
         });
       },
@@ -105,6 +138,12 @@ export default {
          getorderbyuser(this.userId).then((res)=>{
             if(res.code == 200) {
                this.orders = res.data.list
+               this.orders.forEach(item=>{
+                  var dateee = new Date(item.gmtCreate).toJSON();
+                  var date = new Date(+new Date(dateee) + 8 * 3600 * 1000).toISOString().replace(/T/g, ' ').replace(/\.[\d]{3}Z/, '')
+                  item.gmtCreate = date
+               })
+               
                var totalprice = 0
                this.orders.forEach(item => {
                   item.orderdetails.forEach(item => {

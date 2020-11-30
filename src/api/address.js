@@ -36,3 +36,47 @@ export function updateadress(data) {   //请求接口
       data: data
     })
 }
+
+export function getaddress(id) {
+  return request({
+    url: `/address/getaddress/${id}`,
+    method: 'get',
+  })
+}
+
+export function myaddaddress(data) {
+  return request({
+    url: `/address/myaddaddress`,
+    method: 'post',
+    data: data
+  })
+}
+
+export function mygetoneaddr(id) {
+  return request({
+    url: `/address/mygetoneaddr/${id}`,
+    method: 'get'
+  })
+}
+
+export function myupdateaddress(data) {
+  return request({
+    url: `/address/myupdateaddress`,
+    method: 'post',
+    data: data
+  })
+}
+
+export function mydelete(id) {
+  return request({
+    url: `/address/mydelete/${id}`,
+    method: 'get'
+  })
+}
+
+export function setdefault(userid, addrid) {
+  return request({
+    url: `/address/setdefault/${userid}/${addrid}`,
+    method: 'get'
+  })
+}

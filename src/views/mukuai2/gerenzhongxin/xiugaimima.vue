@@ -1,111 +1,119 @@
 <template>
-  <div>
-    <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px"
-     class="demo-ruleForm" label-position="top">
-      <el-form-item label="旧密码" prop="pass">
-        <el-input type="password" v-model="ruleForm.pass" autocomplete="off"></el-input>
-      </el-form-item>
-      <el-form-item label="新密码" prop="newpass">
-        <el-input type="password" v-model="ruleForm.newpass" autocomplete="off"></el-input>
-      </el-form-item>
-      <el-form-item label="确认密码" prop="checkPass">
-        <el-input type="password" v-model="ruleForm.checkPass" autocomplete="off"></el-input>
-      </el-form-item>
-      <el-form-item size="large">
-        <el-button type="primary" @click="submitForm">提交</el-button>
-        <el-button @click="resetForm">重置</el-button>
-      </el-form-item>
-    </el-form>
+  <div class="main">
+    <div class="wrapper">
+      <div class="header">
+        修改密码
+      </div>
+      <div class="userinfo">
+        <div class="formwrapper">
+          <el-form ref="form" :model="formdata" label-width="80px">
+          <el-form-item  label="旧密码">
+            <el-input type="password" v-model="formdata.passold"></el-input>
+          </el-form-item>
+          <el-form-item label="新密码">
+            <el-input type="password" v-model="formdata.passnew"></el-input>
+          </el-form-item>
+          <el-form-item label="再次输入">
+            <el-input type="password" v-model="formdata.repassnew"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="onSubmit">立即修改</el-button>
+          </el-form-item>
+          </el-form>
+        </div>
+        
+
+
+      </div>
+    </div>
   </div>
 </template>
 <script>
+import {updatepass} from '@/api/user'
 export default {
   data() {
-     var validatePass = (rule, value, callback) => {
-        if (value === '') {
-          callback(new Error('请输入密码'));
-        } else {
-          if (this.ruleForm.checkPass !== '') {
-            this.$refs.ruleForm.validateField('checkPass');
-          }
-          callback();
-        }
-      };
-      var validatePass1 = (rule, value, callback) => {
-        if (value === '') {
-          callback(new Error('请再次输入密码'));
-        } else if (value == this.ruleForm.pass) {
-          callback(new Error('新密码不能与旧密码一致!'));
-        } else {
-          callback();
-        }
-      };
-      var validatePass2 = (rule, value, callback) => {
-        if (value === '') {
-          callback(new Error('请再次输入密码'));
-        } else if (value !== this.ruleForm.newpass) {
-          callback(new Error('两次输入密码不一致!'));
-        } else {
-          callback();
-        }
-      };
     return {
-      ruleForm: {
-          pass: '',
-          newpass: '',
-          checkPass: ''
+      formdata: {
+          userId: '',
+          passold:'',
+          passnew: '',
+          repassnew: '',
       },
-      rules: {
-        pass: [
-            { validator: validatePass, trigger: 'blur' }
-          ],
-        newpass: [
-          { validator: validatePass1, trigger: 'blur' }
-        ],
-        checkPass: [
-            { validator: validatePass2, trigger: 'blur' }
-          ],
-      },
+      userId: 0,
     }
   },
-  computed: {},
-  watch: {},
-  created() {},
-  mounted() {},
   methods: {
-    submitForm() {
-      this.$refs['ruleForm'].validate(valid => {
-        if (this.ruleForm.pass != this.ruleForm.pass) {
-             // TODO 提交表单
-             this.$alert('输入的旧密码不正确', '信息提示', {
-                confirmButtonText: '返回',
-                callback: action => {
-                    // this.$message({
-                    //     type: 'info',
-                    //     message: `action: ${ action }`
-                    // });
-                }
+    onSubmit() {
+      this.formdata.userId = this.userId
+        updatepass(this.formdata).then((res) => {
+          if(res.code == 200) {
+            this.$notify({
+                message: '验证失败，请重新登录！',
+                offset: 100,
+                type: 'info'
             });
-          } else{
-           this.$alert('修改密码成功', '信息提示', {
-                confirmButtonText: '返回',
-                callback: action => {
-                    // this.$message({
-                    //     type: 'info',
-                    //     message: `action: ${ action }`
-                    // });
-                }
-            });
-            return false;
+            this.$router.push({path: `/`})
+            this.formdata.passold = ''
+            this.formdata.passnew = ''
+            this.formdata.repassnew = ''
+            this.$store.commit('passtrue')
           }
-      })
+          if(res.code == 201) {
+            this.$notify({
+                title: '失败',
+                message: res.data.msg,
+                offset: 100,
+                type: 'error'
+            });
+          }
+        })
     },
-    resetForm() {
-      this.$refs['ruleForm'].resetFields()
+    getuserId() {
+      var userinfo = localStorage.getItem('userinfo')
+      if(userinfo) {
+        var user = JSON.parse(userinfo)
+        this.userId = user.userId
+      }
     },
+  },
+  created() {
+    this.getuserId()
   }
 }
 
 </script>
-<style>
+<style scoped>
+.main {
+  padding-top: 60px;
+}
+.wrapper {
+  width: 70%;
+  margin: 0 auto;
+  height: 500px;
+  background: white;
+  border: 1px solid #dcdcdc;
+  border-radius: 15px;
+  box-shadow: 0 3px 8px -6px rgba(0,0,0,.1);
+}
+.header {
+  height: 60px;
+  position: relative;
+  z-index: 10;
+  line-height: 60px;
+  font-size: 18px;
+  padding-left: 20px;
+  font-weight: 700;
+  border-radius: 15px 15px 0 0;
+  color: #333;
+  background: linear-gradient(#fbfbfb,#ececec);
+}
+.userinfo {
+  display: flex;
+  height: 440px;
+  align-items: center;
+  justify-content: center;
+}
+.formwrapper {
+  width: 500px;
+}
 </style>

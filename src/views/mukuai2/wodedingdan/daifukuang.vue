@@ -1,16 +1,17 @@
 <template style="background-color: #fff">
 <div>
    <!-- 一部分 -->
-   <el-container style="border-radius:0.5vw;border: 1px solid rgb(144, 206, 230)">
+   <el-container style="border-radius:0.5vw;border: 1px solid rgb(144, 206, 230);margin-bottom:20px;" v-for="item in orders" :key="item.index">
       <el-header>
          <el-row>
-            <el-col :span="6"><div>下单日期：{{date}}</div></el-col>
-            <el-col :span="6"><div>订单号：{{id}}</div></el-col>
-            <el-col :span="6"><div>订单状态：{{state}}</div></el-col>
+            <el-col :span="6"><div>下单日期：{{item.gmtCreate}}</div></el-col>
+            <el-col :span="6"><div>订单号：{{item.orderCode}}</div></el-col>
+            <el-col :span="6" v-if="item.orderStatus == 2"><div>订单状态：等待付款</div></el-col>
+            <el-col :span="6" v-if="item.orderStatus == 3"><div>订单状态：交易关闭</div></el-col>
             <el-col :span="6">
                 <div>
                     <el-link :underline="false" @click="payment" class="delete">|去付款</el-link>
-                    <el-link :underline="false" @click="open" class="delete">取消订单</el-link>
+                    <el-link :underline="false" @click="deleteorder(item.orderId)" class="delete">取消订单</el-link>
                 </div>
             </el-col>
          </el-row>
@@ -18,108 +19,52 @@
       <el-main>
          <el-table class="table"
          show-summary
-            :data="tableData"
-            :summary-method="getSummaries"
+            :data="item.orderdetails"
             border
             style="width: 100%"
             :show-header="false">
             <el-table-column
                width="180">
                <template slot-scope="scope">
-                  <img :src="scope.row.imgsrc" width="50vw" height="50vw"/>
+                  <img :src="scope.row.odetailPic" width="50vw" height="50vw"/>
                </template>
             </el-table-column>
             <el-table-column
-               prop="describe">
+               prop="odetailName">
             </el-table-column>
-            <el-table-column
-               prop="price"
-               width="180">
-            </el-table-column>
-            <el-table-column
-               prop="number"
-               width="180">
-            </el-table-column>
-            <el-table-column
-               width="180">
-                <template slot-scope="scope">
-                     <span>￥</span>
-                     {{ (scope.row.sum = scope.row.price *scope.row.number)| keepTwoNum}}
-                </template>
-            </el-table-column>
-         </el-table>
-         <div class="hr"></div> 
-         <!-- 查看订单详情 -->
-         <el-row style="padding-top:1vw">
-            <el-button @click="details">查看订单详情</el-button>
-            <span style="float: right;">总金额(含运费12.0元) : ￥{{s}}</span>
-         </el-row>
-
-      </el-main>
-   </el-container>
-
-<!--二部分  -->
-   <el-container style="border-radius:0.5vw;border: 1px solid rgb(144, 206, 230);margin-top:1vw">
-      <el-header>
-         <el-row>
-            <el-col :span="6"><div>下单日期：{{date1}}</div></el-col>
-            <el-col :span="6"><div>订单号：{{id1}}</div></el-col>
-            <el-col :span="6"><div>订单状态：{{state1}}</div></el-col>
-            <el-col :span="6">
-                <div>
-                    <el-link :underline="false" @click="payment" class="delete">|去付款</el-link>
-                    <el-link :underline="false" @click="open" class="delete">取消订单</el-link>
-                </div>
-            </el-col>
-         </el-row>
-      </el-header>
-      <el-main>
-         <el-table class="table"
-         show-summary
-            :data="tableData1"
-            :summary-method="getSummarie"
-            border
-            style="width: 100%"
-            :show-header="false">
             <el-table-column
                width="180">
                <template slot-scope="scope">
-                  <img :src="scope.row.imgsrc" width="50vw" height="50vw"/>
+                  <div>¥{{scope.row.odetailPrice}}</div>
                </template>
             </el-table-column>
             <el-table-column
-               prop="describe">
-            </el-table-column>
-            <el-table-column
-               prop="price"
-               width="180">
-            </el-table-column>
-            <el-table-column
-               prop="number"
+               prop="odetailNum"
                width="180">
             </el-table-column>
             <el-table-column
                width="180">
-                <template slot-scope="scope">
-                     <span>￥</span>
-                     {{ (scope.row.sum = scope.row.price *scope.row.number)| keepTwoNum}}
-                </template>
+               <template slot-scope="scope">
+                  <div>¥{{scope.row.odetailTotalprice}}</div>
+               </template>
             </el-table-column>
          </el-table>
          <div class="hr"></div> 
          <!-- 查看订单详情 -->
          <el-row style="padding-top:1vw">
-            <el-button @click="details">查看订单详情</el-button>
-            <span style="float: right;">总金额(含运费12.0元)&nbsp;:&nbsp;￥{{li}}</span>
+            <el-button @click="details(item.orderId)">查看订单详情</el-button>
+            <span style="float: right;">总金额(不含运费) : ￥{{item.total}}</span>
          </el-row>
 
       </el-main>
    </el-container>
+
+
 </div>
 </template>
 
 <script>
-import {getorderfukuan} from '@/api/order'
+import {getorderfukuan, deleteorder} from '@/api/order'
 export default {
      filters: {
       keepTwoNum(value){
@@ -133,18 +78,6 @@ export default {
          li:'',
          userId: '',
          orders: [],
-        tableData: [{
-          imgsrc: require('../../../assets/fenlei2.png'),
-          describe: '女士内衣新型收拢运动内衣 女M 天蓝色',
-          price: '100.0',
-          number: '1'
-        }],
-        tableData1: [{
-          imgsrc: require('../../../assets/fenlei2.png'),
-          describe: '女装军旅式短茄克1 女式XS 黑色',
-          price: '233.0',
-          number: '1',
-        }],
           date: '2016-09-24',
           id: '20160924121822742071',
           state: '等待付款',
@@ -154,46 +87,29 @@ export default {
       };
     },
     methods: {
-       details(){
-          this.$router.push({path:'/dingdanxiangqing'})
+       details(id){
+          this.$router.push({path:`/dingdanxiangqing/${id}`})
        },
-       getSummaries(param) {
-         const { columns, data } = param;
-         var s = 0;
-         data.forEach((data, index) => {
-            s += data.sum;
-         })
-         console.log(s)
-         this.s = s+12;
-         const sums = [];
-         return sums;
-      },
-      getSummarie(param) {
-         const { columns, data } = param;
-         var li = 0;
-         data.forEach((data, index) => {
-            li += data.sum;
-         })
-         console.log(li)
-         this.li = li+12;
-         const sums = [];
-         return sums;
-      },
-      open(){
+       deleteorder(id){
          this.$confirm('确定取消这个订单吗？, 是否继续?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning',
           center: true
         }).then(() => {
-          this.$message({
-            type: 'success',
-            message: '取消订单成功!'
-          });
+           deleteorder(id).then((res) =>{
+              if(res.code == 200) {
+                  this.$message({
+                     type: 'success',
+                     message: '成功!'
+                  });
+                  this.getall()
+              }
+           })
         }).catch(() => {
           this.$message({
             type: 'info',
-            message: '已取消操作'
+            message: '已取消'
           });
         });
       },
@@ -207,7 +123,23 @@ export default {
       getall() {
          getorderfukuan(this.userId).then((res)=>{
             if(res.code == 200) {
+               this.orders = res.data.list
 
+               this.orders.forEach(item=>{
+                  var dateee = new Date(item.gmtCreate).toJSON();
+                  var date = new Date(+new Date(dateee) + 8 * 3600 * 1000).toISOString().replace(/T/g, ' ').replace(/\.[\d]{3}Z/, '')
+                  item.gmtCreate = date
+               })
+
+               var totalprice = 0
+               this.orders.forEach(item => {
+                  item.orderdetails.forEach(item => {
+                     totalprice += item.odetailTotalprice
+                     
+                  })
+                     item.total = totalprice
+                     totalprice = 0
+               });
             }
          })
       },
@@ -217,6 +149,7 @@ export default {
     },
     created() {
        this.getuserid()
+       this.getall()
     }
       
   }

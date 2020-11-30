@@ -1,5 +1,5 @@
 <template>
-<div>
+<div class="main">
     <el-container>
         <el-aside>
            <el-row class="tac">
@@ -59,14 +59,15 @@
   }
 </script>
 <style scoped>
+.main {
+  padding-top: 60px;
+}
 .el-aside {
-    
     background-color: #fff;
     color: #333;
     text-align: left;
-    margin-top: 5rem;
     border: 0px;
-    height: 550px;
+    height: 1000px;
     width: 20%;
   }
   
@@ -74,8 +75,7 @@
     background-color:#E9EEF3;
     color: #333;
     text-align: left;
-    margin-top: 5rem;
-    height: 550px;
+    height: 1000px;
   }
 
   .el-icon-menu{

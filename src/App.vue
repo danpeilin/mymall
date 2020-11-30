@@ -33,9 +33,20 @@
                         <el-input style="width:90%" v-model="loginForm.username"></el-input>
                       </el-form-item>
                       <el-form-item label="密码" prop="password">
-                        <el-input style="width:90%" v-model="loginForm.password"></el-input>
+                        <el-input type="password" style="width:90%" v-model="loginForm.password"></el-input>
                       </el-form-item>
                     <el-button class="loginbtn" type="primary" @click="submitloginForm('loginForm')">登 录</el-button>
+                  </el-form>
+                </el-tab-pane>
+                <el-tab-pane label="手机登录" name="three">
+                <el-form :model="mobileform" :rules="mobileformrules" ref="mobileform" label-width="100px" class="login-ruleForm">
+                      <el-form-item label="手机号" prop="phone">
+                        <el-input style="width:90%" v-model="mobileform.phone"></el-input>
+                      </el-form-item>
+                      <el-form-item label="验证码" prop="code">
+                        <el-input style="width:40%" v-model="mobileform.code"></el-input><el-button v-show="show" @click="getCode" type="success" style="margin-left:20px" round>发送验证码</el-button><el-button v-show="!show" class="count" type="success" style="margin-left:20px" round disabled>{{count}} s</el-button>
+                      </el-form-item>
+                    <el-button class="loginbtn" type="primary" @click="submitmobileform('mobileform')">登 录</el-button>
                   </el-form>
                 </el-tab-pane>
               <el-tab-pane label="用户注册" name="second">
@@ -45,7 +56,7 @@
                     <el-input style="width:90%" v-model="ruleForm.username"></el-input>
                   </el-form-item>
                   <el-form-item label="密码" prop="password">
-                    <el-input style="width:90%" v-model="ruleForm.password"></el-input>
+                    <el-input type="password" style="width:90%" v-model="ruleForm.password"></el-input>
                   </el-form-item>
                   <el-form-item label="昵称" prop="nickname">
                     <el-input style="width:90%" v-model="ruleForm.nickname"></el-input>
@@ -93,7 +104,7 @@
             </span>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item @click.native="toorders">我的订单</el-dropdown-item>
-              <el-dropdown-item >个人中心</el-dropdown-item>
+              <el-dropdown-item @click.native="tocenter">个人中心</el-dropdown-item>
               <el-dropdown-item divided @click.native="logout">注销</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -196,7 +207,7 @@
 
 import {login} from "@/api/user"
 import {getuserinfo} from "@/api/user"
-import {regist} from '@/api/user'
+import {regist,sendmsm, phonelogin} from '@/api/user'
 import {logout} from "@/api/user"
 import {getallcate} from '@/api/cate'
 import {getcartbyid, cartdelete} from '@/api/cart'
@@ -234,6 +245,13 @@ export default {
           sex: '',
           email: ''
         },
+        mobileform: {
+          phone: '',
+          code :''
+        },
+          show: true,
+          count: '',
+          timer: null,
          rules: {
           username: [
             { required: true, message: '请输入用户名', trigger: 'blur' },
@@ -269,6 +287,16 @@ export default {
               { min: 3, max: 12, message: '长度在 3 到 12个字符', trigger: 'blur' }
             ],
         },
+        mobileformrules: {
+            phone: [
+              { required: true, message: '请输入手机号', trigger: 'blur' },
+              { min: 3, max: 11, message: '长度在 3 到 11个字符', trigger: 'blur' }
+            ],
+            code: [
+              { required: true, message: '请输入验证码', trigger: 'blur' },
+              { min: 3, max: 6, message: '长度在 3 到 6个字符', trigger: 'blur' }
+            ]
+        },
         centerDialogVisible: false,
         activeName: 'first',
       }
@@ -295,7 +323,50 @@ export default {
         this.ruleForm = []
         done()
       },
-      
+      isCellPhone(val) {
+	      if (!/^1(3|4|5|6|7|8)\d{9}$/.test(val)) {
+	        return false;
+	      } else {
+	        return true;
+	      }
+	    },
+      getCode(){
+        if(this.isCellPhone(this.mobileform.phone)) {
+          sendmsm(this.mobileform.phone).then((res) => {
+            if(res.code == 200) {
+              this.$message({
+                  message: res.data.msg,
+                  type: 'success'
+                });
+            } else {
+              this.$message({
+                  message: '短信发送失败！',
+                  type: 'error'
+                });
+            }
+          })
+          const TIME_COUNT = 60;
+          if (!this.timer) {
+          this.count = TIME_COUNT;
+          this.show = false;
+          this.timer = setInterval(() => {
+          if (this.count > 0 && this.count <= TIME_COUNT) {
+            this.count--;
+          } else {
+            this.show = true;
+            clearInterval(this.timer);
+            this.timer = null;
+            }
+          }, 1000)
+          }
+        } else {
+          this.$message({
+            message: '请输入正确手机号！',
+            type: 'error'
+          });
+        }
+        
+      } ,
      
        submitForm(formName) {
         this.$refs[formName].validate((valid) => {
@@ -352,17 +423,7 @@ export default {
         login(this.loginForm.username, this.loginForm.password).then(res => {
               if(res.code == 200) {
                 localStorage.setItem('Token', res.data.token)
-                getuserinfo().then(res => {
-                  localStorage.setItem('userinfo', JSON.stringify(res.data.userinfo))
-                  this.userNickname = res.data.userinfo.userNickname
-                  this.userId = res.data.userinfo.userId
-                  this.userAvatar = res.data.userinfo.userAvatar
-                  this.loginForm.username = ''
-                  this.loginForm.password = ''
-                  this.centerDialogVisible = false
-                  }).catch(err => {
-                        
-                  })
+                this.getinfo()
                 this.$message({
                   message: '登陆成功',
                   type: 'success'
@@ -376,6 +437,21 @@ export default {
               }
             }).catch(err => {
             })
+      },
+      getinfo(){
+        getuserinfo().then(res => {
+          localStorage.setItem('userinfo', JSON.stringify(res.data.userinfo))
+          this.userNickname = res.data.userinfo.userNickname
+          this.userId = res.data.userinfo.userId
+          this.userAvatar = res.data.userinfo.userAvatar
+          this.loginForm.username = ''
+          this.loginForm.password = ''
+          this.mobileform.phone = ''
+          this.mobileform.code = ''
+          this.centerDialogVisible = false
+          }).catch(err => {
+                
+          })
       },
         toggletag(index) {
           this.itemactive = ''
@@ -391,6 +467,7 @@ export default {
           if(userinfo) {
             var user = JSON.parse(userinfo)
             this.userId = user.userId
+            this.userAvatar = user.userAvatar
             this.userNickname = user.userNickname
           }
         },
@@ -398,12 +475,14 @@ export default {
           logout().then(res => { 
             localStorage.removeItem('Token')
             localStorage.removeItem('userinfo')
+            this.$router.push({path: '/'})
             this.$message({
                  message: '注销成功',
                  type: 'success'
               });
           })
           this.userNickname = ''
+          this.userAvatar = ''
           this.userId = 0
         },
         showheader() {
@@ -415,6 +494,33 @@ export default {
                   this.show = false
                 }
             })
+        },
+        submitmobileform(formName) {
+          this.$refs[formName].validate((valid) => {
+            if (valid) {
+              phonelogin(this.mobileform.phone, this.mobileform.code).then((res)=>{
+                if(res.code == 200 ) {
+                  localStorage.setItem('Token', res.data.token)
+                  this.getinfo()
+                  this.$message({
+                    message: '登陆成功',
+                    type: 'success'
+                  });
+                } else {
+                  this.$message({
+                    message: res.data.msg,
+                    type: 'error'
+                  });
+                }
+              })
+            } else {
+              this.$message({
+                    message: res.data.msg,
+                    type: '请按规范提交'
+              });
+              return false;
+            }
+          });
         },
         getallates(){
           getallcate().then((res)=>{
@@ -463,6 +569,9 @@ export default {
         },
         toorders() {
           this.$router.push({path: '/allorders'})
+        },
+        tocenter() {
+          this.$router.push({path: '/gerenzhongxin'})
         }
   },
   watch: {
@@ -480,6 +589,24 @@ export default {
         this.totalprice = 0
         this.getcart()
         this.$store.commit('cartfalse')
+      }
+    },
+    '$store.state.alteruser': function () {
+      if(this.$store.state.alteruser == true){
+        this.getinfo()
+        this.$store.commit('userfalse')
+      }
+    },
+    '$store.state.alterpass': function () {
+      if(this.$store.state.alterpass == true){
+        logout().then(res => { 
+            localStorage.removeItem('Token')
+            localStorage.removeItem('userinfo')
+          })
+          this.userNickname = ''
+          this.userAvatar = ''
+          this.userId = 0
+          this.$store.commit('passfalse')
       }
     }
   },
@@ -544,6 +671,7 @@ export default {
   color: black;
   margin-left: 10px;
   border-radius: 25px;
+  cursor: pointer;
 }
 .tagacive {
   color: white;

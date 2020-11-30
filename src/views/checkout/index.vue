@@ -231,27 +231,18 @@ export default {
                         offset: 100,
                         type: 'success'
                     });
+                    this.from = {}
                     this.getalladdress()
                 }
             })
             this.dialogVisible = false
         },
         handleClose(done) {
-            this.form.name = ''
-            this.form.tel = ''
-            this.form.addrProvince = ''
-            this.form.addrCity = ''
-            this.form.addrArea = ''
-            this.form.addrContent = ''
+            this.form = {}
             done()
         },
         edithandleClose(done) {
-            this.editform.name = ''
-            this.editform.tel = ''
-            this.editform.addrProvince = ''
-            this.editform.addrCity = ''
-            this.editform.addrArea = ''
-            this.editform.addrContent = ''
+            this.editform = {}
             done()
         },
         getuserid(){
@@ -332,11 +323,21 @@ export default {
                 addrid: this.adactiveid,
                 tobuyid: this.tobuyid
             }
-            ordersaveadress(data).then((res)=>{
-                if(res.code == 200) {
-                    this.$router.push({path: `/order/${res.data.id}`})
-                }
-            })
+            if(data.addrid == 0) {
+                this.$notify({
+                    title: '错误',
+                    message: '您还没填写收货地址',
+                    offset: 100,
+                    type: 'error'
+                });
+            } else {
+                ordersaveadress(data).then((res)=>{
+                    if(res.code == 200) {
+                        this.$router.push({path: `/order/${res.data.id}`})
+                    }
+                })
+            }
+            
         }
     },
     created() {

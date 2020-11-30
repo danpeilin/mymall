@@ -17,6 +17,10 @@
         <i class="el-icon-menu"></i>
         <span slot="title">待付款订单</span>
       </el-menu-item>
+      <el-menu-item @click="changerouter8" index="8">
+        <i class="el-icon-setting"></i>
+        <span slot="title">交易关闭订单</span>
+      </el-menu-item>
       <el-menu-item @click="changerouter3" index="3">
         <i class="el-icon-document"></i>
         <span slot="title">待发货订单</span>
@@ -36,10 +40,6 @@
       <el-menu-item @click="changerouter7" index="7">
         <i class="el-icon-setting"></i>
         <span slot="title">交易成功订单</span>
-      </el-menu-item>
-      <el-menu-item @click="changerouter8" index="8">
-        <i class="el-icon-setting"></i>
-        <span slot="title">交易关闭订单</span>
       </el-menu-item>
     </el-menu>
   </el-col>

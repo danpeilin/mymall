@@ -21,3 +21,11 @@ export function delteall(id) {   //请求接口
     method: 'get'
   })
 }
+
+export function addtobuy(data) {   //请求接口
+  return request({
+    url: `/tobuy/addtobuy`,
+    method: 'post',
+    data:data
+  })
+}

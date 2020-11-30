@@ -29,3 +29,42 @@ export function logout() {
     method: 'get'
   })
 }
+
+export function getmyuser(id) {
+  return request({
+    url: `/user/getmyuser/${id}`,
+    method: 'get'
+  })
+}
+
+export function savemyuser(data) {
+  return request({
+    url: `/user/savemyuser`,
+    method: 'post',
+    data: data
+  })
+}
+
+export function updatepass(data) {
+  return request({
+    url: `/user/updatepass`,
+    method: 'post',
+    data: data
+  })
+}
+
+export function sendmsm(phone) {
+  return request({
+    url: `/msm/send/${phone}`,
+    method: 'get'
+  })
+}
+
+export function phonelogin(phone, code) {
+  return request({
+    url: `/phonelogin`,
+    method: 'post',
+    params: {phone, code}
+  })
+}
+
