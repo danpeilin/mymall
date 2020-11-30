@@ -1,5 +1,8 @@
 <template>
     <div class="main">
+        <span class="sort-button">
+            <el-button @click="onSort" :icon="sorticon">排序</el-button>
+        </span>
         <div class="wrapper">
             <div class="goodsdiv">
                 <div class="goods" v-for="item in goods" :key="item.goodsId" @click="todetail(item.goodsId)">
@@ -42,6 +45,8 @@ import {getall} from '@/api/goods'
 export default {
     data(){
         return {
+            sorticon: 'el-icon-caret-top',
+            sort: 'asc',
             currentPage: 0,
             pageSize: 10,
             total: 0,
@@ -50,12 +55,22 @@ export default {
         }
     },
     methods:{
+        onSort() {
+            if (this.sorticon == 'el-icon-caret-bottom') {
+            this.sorticon = 'el-icon-caret-top'
+            this.sort = "asc";
+            } else {
+            this.sorticon = 'el-icon-caret-bottom'
+            this.sort = "desc";
+            }
+            this.getall(this.currentPage, this.pageSize, this.cateId);
+        },
         uptop() {
             window.scrollTo(0,0);
         },
         getall(currentPage, pageSize, cateId){
-            
-            getall(currentPage, pageSize, cateId).then((res)=>{
+            var sortAsc = this.sort;
+            getall(currentPage, pageSize, cateId, sortAsc).then((res)=>{
                 if(res.code == 200) {
                     this.goods = res.data.list
                     this.total = res.data.total
@@ -90,7 +105,7 @@ export default {
 </script>
 <style scoped>
 .main {
-    height: 940px;
+    height: 1000px;
     display: flex;
     flex-direction: column;
 }
@@ -103,6 +118,11 @@ export default {
     padding-left: 100px;
     padding-right: 100px;
     height: 800px;
+}
+.sort-button{
+    margin-right: 135px;
+    margin-bottom: 40px;
+    align-self: flex-end;
 }
 .goodsdiv {
     width: 100%;

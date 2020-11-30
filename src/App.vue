@@ -69,8 +69,14 @@
         </el-dialog>
 
       <div class="searchbar">
-        <el-input v-model="input" placeholder="请输入内容"></el-input>
-        
+        <el-autocomplete
+        class="inline-input"
+        v-model="input"
+        :fetch-suggestions="querySearch"
+        placeholder="请输入内容"
+        :trigger-on-focus="false"
+        @select="handleSelect">
+        </el-autocomplete>
       </div>
       
       <div class="rightarea">
@@ -194,6 +200,7 @@ import {regist} from '@/api/user'
 import {logout} from "@/api/user"
 import {getallcate} from '@/api/cate'
 import {getcartbyid, cartdelete} from '@/api/cart'
+import {search} from '@/api/appView'
 export default {
   data() {
       return {
@@ -268,6 +275,19 @@ export default {
       
     },
     methods: {
+        querySearch(queryString, cb) {
+        search(queryString).then((res) => {
+          if(res.code == 200){
+            cb(res.data.result);
+          }
+        })
+        
+      },
+      handleSelect(item) {
+        this.input = '';
+        this.$router.push({path: `/goodsdetail/${item.goodsID}`});
+      },
+
        handleBeforeClose(done) {
         this.$store.commit("changeFlase")
         this.loginForm.username = ''
