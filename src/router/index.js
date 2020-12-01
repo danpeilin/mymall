@@ -18,9 +18,8 @@ import xiugaigerenxinxi from '../views/mukuai2/gerenzhongxin/xiugaigerenxinxi'
 import xiugaimima from '../views/mukuai2/gerenzhongxin/xiugaimima'
 import payment from '../views/mukuai2/wodedingdan/dingdanxiangqing/payment'
 import pay from '../views/mukuai2/wodedingdan/dingdanxiangqing/pay'
-
-
-
+import NewGooods from '../views/newgoods/index'
+import HotGoods from '../views/hotgoods/index'
 
 
 
@@ -38,6 +37,20 @@ const routes = [
     name: 'home',
     meta:{index:0,name:'home'},
     component: Home,
+  },
+  {
+    //新到商品
+    path: '/newgoods',
+    name: 'newgoods',  
+    meta:{index:1,name:'newgoods'},
+    component: NewGooods, 
+  },
+  {
+    //精选商品
+    path: '/hotgoods',
+    name: 'hotgoods',  
+    meta:{index:1,name:'hotgoods'},
+    component: HotGoods, 
   },
   {
     path: '/categoods/:id',

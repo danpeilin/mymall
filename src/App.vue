@@ -162,7 +162,7 @@
         </el-dropdown>
       </div>
     </div>
-    <div class="tooo"></div>
+    <div class="tooo"></div> 
     <router-view/>
     <div class="bottom-bar">
       
@@ -455,8 +455,11 @@ export default {
       },
         toggletag(index) {
           this.itemactive = ''
-          if (index == 0) {
-            this.$router.push({path: '/'})
+     
+          switch(index){
+            case 0: this.$router.push({path: '/'}); break;
+            case 1: this.$router.push({path: '/newgoods'}); break;
+            case 2: this.$router.push({path: '/hotgoods'}); break;
           }
         },
         changeVisible() {
