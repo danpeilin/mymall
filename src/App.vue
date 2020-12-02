@@ -44,7 +44,7 @@
                         <el-input style="width:90%" v-model="mobileform.phone"></el-input>
                       </el-form-item>
                       <el-form-item label="验证码" prop="code">
-                        <el-input style="width:40%" v-model="mobileform.code"></el-input><el-button v-show="show" @click="getCode" type="success" style="margin-left:20px" round>发送验证码</el-button><el-button v-show="!show" class="count" type="success" style="margin-left:20px" round disabled>{{count}} s</el-button>
+                        <el-input style="width:40%" v-model="mobileform.code"></el-input><el-button v-show="showmsg" @click="getCode" type="success" style="margin-left:20px" round>发送验证码</el-button><el-button v-show="!showmsg" class="count" type="success" style="margin-left:20px" round disabled>{{count}} s</el-button>
                       </el-form-item>
                     <el-button class="loginbtn" type="primary" @click="submitmobileform('mobileform')">登 录</el-button>
                   </el-form>
@@ -249,7 +249,8 @@ export default {
           phone: '',
           code :''
         },
-          show: true,
+          showmsg: true ,
+          show: false,
           count: '',
           timer: null,
          rules: {
@@ -348,12 +349,12 @@ export default {
           const TIME_COUNT = 60;
           if (!this.timer) {
           this.count = TIME_COUNT;
-          this.show = false;
+          this.showmsg = false;
           this.timer = setInterval(() => {
           if (this.count > 0 && this.count <= TIME_COUNT) {
             this.count--;
           } else {
-            this.show = true;
+            this.showmsg = true;
             clearInterval(this.timer);
             this.timer = null;
             }
@@ -484,6 +485,7 @@ export default {
                  type: 'success'
               });
           })
+          this.show = true
           this.userNickname = ''
           this.userAvatar = ''
           this.userId = 0
@@ -882,5 +884,8 @@ export default {
 .cartwrapper {
   max-height: 600px;
   overflow-y: auto;
+}
+.el-dropdown-link {
+  cursor: pointer;
 }
 </style>

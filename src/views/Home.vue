@@ -186,9 +186,13 @@ export default {
             this.twothree = false
           }
         })
-      }
+      },
+      uptop() {
+            window.scrollTo(0,0);
+      },
     },
     created() {
+      this.uptop()
       this.get_fenlei();
       this.get_xinpin();
       this.get_jingxuan();

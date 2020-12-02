@@ -257,8 +257,12 @@ export default {
                 this.userId = ''
             }
         },
+        uptop() {
+            window.scrollTo(0,0);
+        },
     },
     created(){
+        this.uptop()
         this.getindex()
         this.getgoods()
         this.getcolors()
