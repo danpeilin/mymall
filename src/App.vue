@@ -40,7 +40,8 @@
                 </el-tab-pane>
                 <el-tab-pane label="手机登录" name="three">
                 <el-form :model="mobileform" :rules="mobileformrules" ref="mobileform" label-width="100px" class="login-ruleForm">
-                      <el-form-item label="手机号" prop="phone">
+                      <span style="margin-left:40px;color:#A4A4A4">未注册手机验证后自动登录</span>
+                      <el-form-item style="margin-top:15px" label="手机号" prop="phone">
                         <el-input style="width:90%" v-model="mobileform.phone"></el-input>
                       </el-form-item>
                       <el-form-item label="验证码" prop="code">
@@ -314,7 +315,9 @@ export default {
       },
       handleSelect(item) {
         this.input = '';
-        this.$router.push({path: `/goodsdetail/${item.goodsID}`});
+        if(item.goodsID != null){
+          this.$router.push({path: `/goodsdetail/${item.goodsID}`});
+        }
       },
 
        handleBeforeClose(done) {
